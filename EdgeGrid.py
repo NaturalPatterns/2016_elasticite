@@ -1,3 +1,5 @@
+import numpy as np
+import matplotlib.pyplot as plt
 
 class EdgeGrid():
     def __init__(self):
@@ -46,21 +48,19 @@ class EdgeGrid():
         pylab.draw()
         return fig, a
 
-
     def set_lines(self):
         from matplotlib.collections import LineCollection
         import matplotlib.patches as patches
         # draw the segments
         segments, colors, linewidths = list(), list(), list()
 
-        X, Y, Theta = self.lames[0, :], self.lames[1, :], self.lames[2, :]
+        X, Y, Theta = self.lames[0, :], self.lames[1, :].real, self.lames[2, :]
         for x, y, theta in zip(X, Y, Theta):
             u_, v_ = np.cos(theta)*self.lame_length, np.sin(theta)*self.lame_length
             segments.append([(x - u_, y - v_), (x + u_, y + v_)])
             colors.append((0, 0, 0, 1))# black
-            linewidths.append(self.line_width) # *weight thinning byalpha...
+            linewidths.append(self.line_width)
         return LineCollection(segments, linewidths=linewidths, colors=colors, linestyles='solid')
-
 
     def update_lines(self):
         from matplotlib.collections import LineCollection
@@ -71,17 +71,4 @@ class EdgeGrid():
             u_, v_ = np.cos(theta)*self.lame_length, np.sin(theta)*self.lame_length
             segments.append([(x - u_, y - v_), (x + u_, y + v_)])
         self.lines.set_segments(segments)
-      
-from matplotlib import animation
-
-# create a simple animation
-fig, a = e.show_edges()
-
-def init():
-    e.show_edges(fig, a)
-
-def animate(i):
-    e.lames[2, :] = i*np.pi/100 + .0*np.pi*np.random.randn(e.N_lame)
-    e.update_lines()
-
-    
+  
