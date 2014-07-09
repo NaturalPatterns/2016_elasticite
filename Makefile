@@ -1,4 +1,4 @@
-default: 1-grille.html  2-animation_in_a_notebook.html  3-adaptation.html
+default: 1-grille.html  2-animation_in_a_notebook.html  3-adaptation.html 4-vitesse.html 5-distance.html 6-croix.html
 
 %.html: %.ipynb
 	runipy $< --html $@
@@ -8,7 +8,7 @@ default: 1-grille.html  2-animation_in_a_notebook.html  3-adaptation.html
 
 # cleaning macros
 clean:
-	find .  -name *lock* -exec rm -fr {} \;
-	rm -fr figures/* *.pyc *.py~ build dist
+	#find .  -name *lock* -exec rm -fr {} \;
+	rm -fr  *.html *.pyc *.py~
 
 .PHONY: clean
