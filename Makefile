@@ -1,15 +1,17 @@
-default: 1-grille.html  2-animation_in_a_notebook.html  3-adaptation.html 4-vitesse.html 5-distance.html 6-croix.html
+default: posts/2015-04-30_trame-sensorielle.ipynb
 
-%.html: %.ipynb
-	runipy $< -o
-	ipython nbconvert --SphinxTransformer.author='Laurent Perrinet (INT, UMR7289)' --to html $<
+todo:
+	grep -R * (^|#)[ ]*(TODO|FIXME|XXX|HINT|TIP)( |:)([^#]*)
 
+# macros for tests
 %.pdf: %.ipynb
 	ipython nbconvert --SphinxTransformer.author='Laurent Perrinet (INT, UMR7289)' --to latex --post PDF $<
 
 # cleaning macros
-clean:
-	#find .  -name *lock* -exec rm -fr {} \;
-	rm -fr  *.html *.pyc *.py~
+touch:
+	touch *.ipynb
 
-.PHONY: clean
+clean:
+	rm -fr  *.tex test_modele_dynamique_files test_coordonees_perceptives_files workflow_files *.dvi *.ps *.out *.log *.aux *.bbl *.blg *.snm *.fls *.nav *.idx *.toc *.fff *.synctex.gz* *.fdb_latexmk
+
+.PHONY:  all clean
