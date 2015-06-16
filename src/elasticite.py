@@ -89,12 +89,22 @@ class EdgeGrid():
                               int((bord+self.lames[1, i]*(1-2*bord))*N_Y)]
         return angles - np.pi/2
 
+    def distance(self):
+        dx = self.lames[0, :, np.newaxis]-self.lames[0, np.newaxis, :]
+        dy = self.lames[1, :, np.newaxis]-self.lames[1, np.newaxis, :]
+        return np.sqrt(dx **2 + dy **2)
+
+    def angle_relatif(self):
+        return self.lames[2, :, np.newaxis]-self.lames[2, np.newaxis, :]
+
     def update(self):
         t = time.time()
-        self.lames[2, :] = 2*self.f*np.pi*t
-        self.lames[2, :] += ((self.lames[0, :]-.5)**2 + (self.lames[1, :]-.5)**2)  * self.f / 1. * 2 * np.pi * np.random.randn(self.N_lame) # brownian motion in orientation
+        #self.lames[2, :] = 2*self.f*np.pi*t
+        #self.lames[2, :] += ((self.lames[0, :]-.5)**2 + (self.lames[1, :]-.5)**2)  * self.f / 1. * 2 * np.pi * np.random.randn(self.N_lame) # brownian motion in orientation
         #self.lames[2, :] *= np.sin( 2*self.f*np.pi*t/10. )  # damping at the end of the period
 
+        self.lames[2, :] += -.0001 * np.sum(np.sin(2*self.angle_relatif())/(self.distance()+.1), axis=1)
+        self.lames[2, :] += .01*np.pi*np.random.randn(self.N_lame)
 
     #def show_edges(self, fig=None, a=None):
         #self.N_theta = 12
