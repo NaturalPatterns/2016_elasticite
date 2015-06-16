@@ -282,7 +282,7 @@ class Window(pyglet.window.Window):
                             np.ones_like(self.e.lames[0, :]),
                             self.e.lames[0, :],
                             self.e.lames[1, :]+.1))
-        #coords = np.array(
+        coords = np.array([[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]])
         pyglet.graphics.draw(2*self.e.N_lame, gl.GL_LINES, ('v3f', coords.T.ravel().tolist()))
         #X, Y, Theta = self.lames[0, :], self.lames[1, :].real, self.lames[2, :]
         #for x, y, theta in zip(X, Y, Theta):
