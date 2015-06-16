@@ -278,22 +278,19 @@ class Window(pyglet.window.Window):
 
         gl.glLineWidth (3) #p['line_width'])
         gl.glColor3f(1., 1., 1.)
+        import time
+        t = time.time()
+        self.e.lames[2, :] = 2*np.pi*t
         X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], self.e.lames[2, :]
         dX, dY = np.cos(Theta)*self.e.lame_length, np.sin(Theta)*self.e.lame_length
-        coords = np.vstack((np.hstack((X-dX, X+dX)),
-                            np.hstack((Y-dY, Y+dY))))
+        coords = np.vstack((X-dX, Y-dY, X+dX, Y+dY))
+        print(coords.shape)
         pyglet.graphics.draw(2*self.e.N_lame, gl.GL_LINES, ('v2f', coords.T.ravel().tolist()))
         #coords = np.array([[0.2, 0.2], [.9, .99]])
         #pyglet.graphics.draw(2, gl.GL_LINES, ('v2f', coords.T.ravel().tolist()))
         coords = np.array([[0., 1., 1., 0.], [0., 0., 1., 1.]])
         pyglet.graphics.draw(4, gl.GL_LINE_LOOP, ('v2f', coords.T.ravel().tolist()))
-        #pyglet.graphics.draw(2, pyglet.gl.GL_POINTS,
-            #('v2f', (.75, .5, .30, .35))
-        #)
-        print(self.e.lames[:2,:].shape)
         pyglet.graphics.draw(self.e.N_lame, gl.GL_POINTS, ('v2f', self.e.lames[:2,:].T.ravel().tolist()))
-
-
 def main():
     platform = pyglet.window.get_platform()
     print "platform" , platform
@@ -306,17 +303,11 @@ def main():
     N_screen = len(screens) # number of screens
     N_screen = 1# len(screens) # number of screens
     assert N_screen == 1 # we should be running on one screen only
-
-    #if True:# do_fs:
-        #self.win = Window(screen=screens[0], fullscreen=True, resizable=True)
-    #else:
-        #self.win = Window(width=screen.width*2/3, height=screen.height*2/3, screen=screens[0], fullscreen=False, resizable=True)
-        #self.win.set_location(screen.width/3, screen.height/3)
-#
-    #self.fps_text = pyglet.clock.ClockDisplay()
-
+    def callback(dt):
+        print('%f seconds since last callback' % dt , '%f  fps' % pyglet.clock.get_fps())
     window = Window(width=screen.width*2/3, height=screen.height*2/3)
     window.set_location(screen.width/3, screen.height/3)
+    pyglet.clock.schedule(callback)
     pyglet.app.run()
 
 if __name__ == '__main__':
