@@ -25,7 +25,9 @@ class EdgeGrid():
         self.lames[1, :] /= self.N_lame_X
 
         self.lames_minmax = np.array([self.lames[0, :].min(), self.lames[0, :].max(), self.lames[1, :].min(), self.lames[1, :].max()])
+        print(self.lames_minmax)
         self.lame_length = .45/self.N_lame_X
+        print(self.lame_length)
         #self.lines = self.set_lines()
 
         self.N_theta = 12
@@ -264,30 +266,32 @@ class Window(pyglet.window.Window):
                 #1., 0.5, 0.5, #VPs[s_VP]['cx'], VPs[s_VP]['cy'], VPs[s_VP]['cz'],
                 #0., 0, 1.0)
         #gl.glMatrixMode(gl.GL_MODELVIEW)
-        gl.glOrtho(0, self.W, 1, 0, 0, 1);
+        gl.gluOrtho2D(-(self.W-1)/2, (self.W+1)/2, 0, 1, 0, 0, 1);
         #gl.glViewport(0, 0, self.W, 1);
 
         gl.glMatrixMode(gl.GL_MODELVIEW);
         gl.glLoadIdentity();
-        gl.glTranslatef(0.375, 0.375, 0);
+        #gl.glTranslatef(0., 0, self.W/2);
 
         # TODO: make an option to view particles from above
         #gl.gluOrtho2D(0.0, d_y, 0., d_z) #left, right, bottom, top, near, far
 
         gl.glLineWidth (3) #p['line_width'])
         gl.glColor3f(1., 1., 1.)
-        coords = np.hstack((np.ones_like(self.e.lames[0, :]),
-                            self.e.lames[0, :],
-                            self.e.lames[1, :],
-                            np.ones_like(self.e.lames[0, :]),
-                            self.e.lames[0, :],
-                            self.e.lames[1, :]+.1))
-        coords = np.array([[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]])
-        pyglet.graphics.draw(2*self.e.N_lame, gl.GL_LINES, ('v3f', coords.T.ravel().tolist()))
-        #X, Y, Theta = self.lames[0, :], self.lames[1, :].real, self.lames[2, :]
-        #for x, y, theta in zip(X, Y, Theta):
-            #u_, v_ = np.cos(theta)*self.lame_length, np.sin(theta)*self.lame_length
-            #segments.append([(x - u_, y - v_), (x + u_, y + v_)])
+        X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], self.e.lames[2, :]
+        dX, dY = np.cos(Theta)*self.e.lame_length, np.sin(Theta)*self.e.lame_length
+        coords = np.vstack((np.hstack((X-dX, X+dX)),
+                            np.hstack((Y-dY, Y+dY))))
+        pyglet.graphics.draw(2*self.e.N_lame, gl.GL_LINES, ('v2f', coords.T.ravel().tolist()))
+        #coords = np.array([[0.2, 0.2], [.9, .99]])
+        #pyglet.graphics.draw(2, gl.GL_LINES, ('v2f', coords.T.ravel().tolist()))
+        coords = np.array([[0., 1., 1., 0.], [0., 0., 1., 1.]])
+        pyglet.graphics.draw(4, gl.GL_LINE_LOOP, ('v2f', coords.T.ravel().tolist()))
+        #pyglet.graphics.draw(2, pyglet.gl.GL_POINTS,
+            #('v2f', (.75, .5, .30, .35))
+        #)
+        print(self.e.lames[:2,:].shape)
+        pyglet.graphics.draw(self.e.N_lame, gl.GL_POINTS, ('v2f', self.e.lames[:2,:].T.ravel().tolist()))
 
 
 def main():
