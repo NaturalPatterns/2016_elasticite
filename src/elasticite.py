@@ -112,7 +112,7 @@ class EdgeGrid():
 
     def champ(self):
         force = np.zeros_like(self.lames[2, :])
-        noise = lambda t: 0.5 * np.exp((np.cos(2*np.pi*t / 6.)-1.)/ 1.5**2)
+        noise = lambda t: 0.1 * np.exp((np.cos(2*np.pi*t / 6.)-1.)/ 1.5**2)
         damp = lambda t: 0.005 #* np.exp(np.cos(t / 6.) / 3.**2)
         colin = lambda t: -5.5*np.exp((np.cos(2*np.pi*(t-3.) / 6.)-1.)/ .5**2)
         #self.lames[2, :] += ((self.lames[0, :]-.5)**2 + (self.lames[1, :]-.5)**2)  * self.f / 1. * 2 * np.pi * np.random.randn(self.N_lame) # brownian motion in orientation
