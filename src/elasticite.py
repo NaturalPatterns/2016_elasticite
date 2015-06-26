@@ -112,15 +112,15 @@ class EdgeGrid():
 
     def champ(self):
         force = np.zeros_like(self.lames[2, :])
-        noise = lambda t: 0.1 * np.exp((np.cos(2*np.pi*t / 6.)-1.)/ 1.5**2)
-        damp = lambda t: 0.005 #* np.exp(np.cos(t / 6.) / 3.**2)
-        colin = lambda t: -5.5*np.exp((np.cos(2*np.pi*(t-3.) / 6.)-1.)/ .5**2)
-        #self.lames[2, :] += ((self.lames[0, :]-.5)**2 + (self.lames[1, :]-.5)**2)  * self.f / 1. * 2 * np.pi * np.random.randn(self.N_lame) # brownian motion in orientation
-        #self.lames[2, :] *= np.sin( 2*self.f*np.pi*t/10. )  # damping at the end of the period
-        dist = lambda d: np.exp(-d/.5)
-        theta0 = lambda theta: 0.
+        noise = lambda t: 0.09 * np.exp((np.cos(2*np.pi*(t-0.) / 6.)-1.)/ 1.5**2)
+        damp = lambda t: 0.02 #* np.exp(np.cos(t / 6.) / 3.**2)
+        colin_t = lambda t: -1.*np.exp((np.cos(2*np.pi*(t-2.) / 6.)-1.)/ .3**2)
+        cocir_t = lambda t: -4.*np.exp((np.cos(2*np.pi*(t-4.) / 6.)-1.)/ .5**2)
+        cocir_d = lambda d: np.exp(-d/.1)
+        colin_d = lambda d: np.exp(-d/.5)
 
-        force += colin(self.t) * np.sum(np.sin(2*(self.angle_relatif()-theta0(self.t)))*dist(self.distance()), axis=1)
+        force += cocir_t(self.t) * np.sum(np.sin(2*(self.angle_relatif()))*cocir_d(self.distance()), axis=1)
+        force += colin_t(self.t) * np.sum(np.sin(2*(self.angle_cocir()))*colin_d(self.distance()), axis=1)
         force += noise(self.t)*np.pi*np.random.randn(self.N_lame)
         force -= damp(self.t) * self.lames[3, :]/self.dt
         return force
