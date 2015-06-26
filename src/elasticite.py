@@ -31,8 +31,8 @@ class EdgeGrid():
 
         self.lames_minmax = np.array([self.lames[0, :].min(), self.lames[0, :].max(), self.lames[1, :].min(), self.lames[1, :].max()])
         print(self.lames_minmax)
-        self.lame_length = .45/self.N_lame_X
-        self.lame_width = .02/self.N_lame_X
+        self.lame_length = .9/self.N_lame_X
+        self.lame_width = .05/self.N_lame_X
         print(self.lame_length)
         #self.lines = self.set_lines()
         self.f = .1
@@ -107,7 +107,7 @@ class EdgeGrid():
         #self.lames[2, :] *= np.sin( 2*self.f*np.pi*t/10. )  # damping at the end of the period
 
         self.lames[2, :] += -.00001 * np.sum(np.sin(2*self.angle_relatif())/(self.distance()+.1), axis=1)
-        self.lames[2, :] += .01*np.pi*np.random.randn(self.N_lame)
+        self.lames[2, :] += .0001*np.pi*np.random.randn(self.N_lame)
 
     #def show_edges(self, fig=None, a=None):
         #self.N_theta = 12
@@ -259,14 +259,25 @@ class Window(pyglet.window.Window):
         gl.glMatrixMode(gl.GL_MODELVIEW);
         gl.glLoadIdentity();
 
-        gl.glLineWidth (4) #p['line_width'])
-        gl.glEnable (gl.GL_LINE_SMOOTH)
-        gl.glHint(gl.GL_LINE_SMOOTH_HINT, gl.GL_NICEST)
+        #gl.glLineWidth () #p['line_width'])
+        #gl.glEnable (gl.GL_LINE_SMOOTH)
+        #gl.glHint(gl.GL_LINE_SMOOTH_HINT, gl.GL_NICEST)
         gl.glColor3f(0., 0., 0.)
         X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], self.e.lames[2, :]
-        dX, dY = np.cos(Theta), np.sin(Theta)
-        coords = np.vstack((X-dX*self.e.lame_length, Y-dY*self.e.lame_length, X+dX*self.e.lame_length, Y+dY*self.e.lame_length))
-        pyglet.graphics.draw(2*self.e.N_lame, gl.GL_LINES, ('v2f', coords.T.ravel().tolist()))
+        dX, dY = np.cos(Theta)/2., np.sin(Theta)/2.
+        # coords = np.vstack((X-dX*self.e.lame_length, Y-dY*self.e.lame_length, X+dX*self.e.lame_length, Y+dY*self.e.lame_length))
+        coords = np.vstack((
+                            X-dX*self.e.lame_length+dY*self.e.lame_width, Y-dY*self.e.lame_length-dX*self.e.lame_width,
+                            X+dX*self.e.lame_length+dY*self.e.lame_width, Y+dY*self.e.lame_length-dX*self.e.lame_width,
+                            X-dX*self.e.lame_length-dY*self.e.lame_width, Y-dY*self.e.lame_length+dX*self.e.lame_width,
+                            X+dX*self.e.lame_length-dY*self.e.lame_width, Y+dY*self.e.lame_length+dX*self.e.lame_width,
+                            ))
+        #pyglet.graphics.draw(2*self.e.N_lame, gl.GL_LINES, ('v2f', coords.T.ravel().tolist()))
+        indices = np.array([0, 1, 2, 1, 2, 3])[:, np.newaxis] + 4*np.arange(self.e.N_lame)
+        pyglet.graphics.draw_indexed(4*self.e.N_lame, pyglet.gl.GL_TRIANGLES,
+                                     indices.T.ravel().tolist(),
+                                     ('v2f', coords.T.ravel().tolist()))
+        #pyglet.graphics.draw(4*self.e.N_lame, gl.GL_QUADS, ('v2f', coords.T.ravel().tolist()))
         # carré
         if DEBUG:
             coords = np.array([[0., 1., 1., 0.], [0., 0., 1., 1.]])
