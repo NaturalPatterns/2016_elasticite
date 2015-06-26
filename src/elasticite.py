@@ -12,6 +12,7 @@ DEBUG = False
 #
 class EdgeGrid():
     def __init__(self):
+        self.t = time.time()
 
         self.figsize = 13
         self.line_width = 4.
@@ -19,7 +20,7 @@ class EdgeGrid():
         self.N_lame = 72
         self.N_lame_X = np.int(np.sqrt(self.N_lame))#*np.sqrt(3) / 2)
 
-        self.lames = np.zeros((3, self.N_lame))
+        self.lames = np.zeros((4, self.N_lame))
         self.lames[0, :] = np.mod(np.arange(self.N_lame), self.N_lame_X)
         self.lames[0, :] += np.mod(np.floor(np.arange(self.N_lame)/self.N_lame_X), 2)/2
         self.lames[1, :] = np.floor(np.arange(self.N_lame)/self.N_lame_X)
@@ -32,7 +33,7 @@ class EdgeGrid():
         self.lames_minmax = np.array([self.lames[0, :].min(), self.lames[0, :].max(), self.lames[1, :].min(), self.lames[1, :].max()])
         print(self.lames_minmax)
         self.lame_length = .9/self.N_lame_X
-        self.lame_width = .05/self.N_lame_X
+        self.lame_width = .02/self.N_lame_X
         print(self.lame_length)
         #self.lines = self.set_lines()
         self.f = .1
@@ -92,22 +93,44 @@ class EdgeGrid():
                               int((bord+self.lames[1, i]*(1-2*bord))*N_Y)]
         return angles - np.pi/2
 
-    def distance(self):
+    def pos_rel(self):
         dx = self.lames[0, :, np.newaxis]-self.lames[0, np.newaxis, :]
         dy = self.lames[1, :, np.newaxis]-self.lames[1, np.newaxis, :]
+        return dx, dy
+
+    def distance(self):
+        dx, dy = self.pos_rel()
         return np.sqrt(dx **2 + dy **2)
 
     def angle_relatif(self):
         return self.lames[2, :, np.newaxis]-self.lames[2, np.newaxis, :]
 
-    def update(self):
-        t = time.time()
-        #self.lames[2, :] = 2*self.f*np.pi*t
+    def angle_cocir(self):
+        dx, dy = self.pos_rel()
+        theta = self.angle_relatif()
+        return np.arctan2(dy, dx) - np.pi/2 - theta
+
+    def champ(self):
+        force = np.zeros_like(self.lames[2, :])
+        noise = lambda t: 0.5 * np.exp((np.cos(2*np.pi*t / 6.)-1.)/ 1.5**2)
+        damp = lambda t: 0.005 #* np.exp(np.cos(t / 6.) / 3.**2)
+        colin = lambda t: -5.5*np.exp((np.cos(2*np.pi*(t-3.) / 6.)-1.)/ .5**2)
         #self.lames[2, :] += ((self.lames[0, :]-.5)**2 + (self.lames[1, :]-.5)**2)  * self.f / 1. * 2 * np.pi * np.random.randn(self.N_lame) # brownian motion in orientation
         #self.lames[2, :] *= np.sin( 2*self.f*np.pi*t/10. )  # damping at the end of the period
+        dist = lambda d: np.exp(-d/.5)
+        theta0 = lambda theta: 0.
 
-        self.lames[2, :] += -.00001 * np.sum(np.sin(2*self.angle_relatif())/(self.distance()+.1), axis=1)
-        self.lames[2, :] += .01*np.pi*np.random.randn(self.N_lame)
+        force += colin(self.t) * np.sum(np.sin(2*(self.angle_relatif()-theta0(self.t)))*dist(self.distance()), axis=1)
+        force += noise(self.t)*np.pi*np.random.randn(self.N_lame)
+        force -= damp(self.t) * self.lames[3, :]/self.dt
+        return force
+
+    def update(self):
+        self.dt = time.time() - self.t
+        self.lames[2, :] += self.lames[3, :]*self.dt/2
+        self.lames[3, :] += self.champ() * self.dt
+        self.lames[2, :] += self.lames[3, :]*self.dt/2
+        self.t = time.time()
 
     #def show_edges(self, fig=None, a=None):
         #self.N_theta = 12
