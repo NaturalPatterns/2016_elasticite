@@ -107,7 +107,7 @@ class EdgeGrid():
         #self.lames[2, :] *= np.sin( 2*self.f*np.pi*t/10. )  # damping at the end of the period
 
         self.lames[2, :] += -.00001 * np.sum(np.sin(2*self.angle_relatif())/(self.distance()+.1), axis=1)
-        self.lames[2, :] += .0001*np.pi*np.random.randn(self.N_lame)
+        self.lames[2, :] += .01*np.pi*np.random.randn(self.N_lame)
 
     #def show_edges(self, fig=None, a=None):
         #self.N_theta = 12
@@ -211,6 +211,9 @@ import pyglet
 from pyglet.gl.glu import gluLookAt
 import pyglet.gl as gl
 
+smoothConfig = gl.Config(sample_buffers=1, samples=4,
+                                        depth_size=16, double_buffer=True)
+
 class Window(pyglet.window.Window):
     """
     Viewing particles using pyglet.app
@@ -225,7 +228,8 @@ class Window(pyglet.window.Window):
 
     """
     def __init__(self, *args, **kwargs):
-        super(Window, self).__init__(*args, **kwargs)
+        #super(Window, self).__init__(*args, **kwargs)
+        super(Window, self).__init__(config=smoothConfig, *args, **kwargs)
         self.e = EdgeGrid()
 
     #@self.event
@@ -260,7 +264,7 @@ class Window(pyglet.window.Window):
         gl.glLoadIdentity();
 
         #gl.glLineWidth () #p['line_width'])
-        #gl.glEnable (gl.GL_LINE_SMOOTH)
+        gl.glEnable (gl.GL_BLEND)
         #gl.glHint(gl.GL_LINE_SMOOTH_HINT, gl.GL_NICEST)
         gl.glColor3f(0., 0., 0.)
         X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], self.e.lames[2, :]
