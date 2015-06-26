@@ -4,6 +4,8 @@
 import numpy as np
 import time
 
+DEBUG = False
+
 #import matplotlib
 #matplotlib.use("Agg") # agg-backend, so we can create figures without x-server (no PDF, just PNG etc.)
 #import matplotlib.pyplot as plt
@@ -30,6 +32,7 @@ class EdgeGrid():
         self.lames_minmax = np.array([self.lames[0, :].min(), self.lames[0, :].max(), self.lames[1, :].min(), self.lames[1, :].max()])
         print(self.lames_minmax)
         self.lame_length = .45/self.N_lame_X
+        self.lame_width = .02/self.N_lame_X
         print(self.lame_length)
         #self.lines = self.set_lines()
         self.f = .1
@@ -103,7 +106,7 @@ class EdgeGrid():
         #self.lames[2, :] += ((self.lames[0, :]-.5)**2 + (self.lames[1, :]-.5)**2)  * self.f / 1. * 2 * np.pi * np.random.randn(self.N_lame) # brownian motion in orientation
         #self.lames[2, :] *= np.sin( 2*self.f*np.pi*t/10. )  # damping at the end of the period
 
-        self.lames[2, :] += -.0001 * np.sum(np.sin(2*self.angle_relatif())/(self.distance()+.1), axis=1)
+        self.lames[2, :] += -.00001 * np.sum(np.sin(2*self.angle_relatif())/(self.distance()+.1), axis=1)
         self.lames[2, :] += .01*np.pi*np.random.randn(self.N_lame)
 
     #def show_edges(self, fig=None, a=None):
@@ -261,15 +264,15 @@ class Window(pyglet.window.Window):
         gl.glHint(gl.GL_LINE_SMOOTH_HINT, gl.GL_NICEST)
         gl.glColor3f(0., 0., 0.)
         X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], self.e.lames[2, :]
-        dX, dY = np.cos(Theta)*self.e.lame_length, np.sin(Theta)*self.e.lame_length
-        coords = np.vstack((X-dX, Y-dY, X+dX, Y+dY))
+        dX, dY = np.cos(Theta), np.sin(Theta)
+        coords = np.vstack((X-dX*self.e.lame_length, Y-dY*self.e.lame_length, X+dX*self.e.lame_length, Y+dY*self.e.lame_length))
         pyglet.graphics.draw(2*self.e.N_lame, gl.GL_LINES, ('v2f', coords.T.ravel().tolist()))
         # carré
-        if False:
+        if DEBUG:
             coords = np.array([[0., 1., 1., 0.], [0., 0., 1., 1.]])
             pyglet.graphics.draw(4, gl.GL_LINE_LOOP, ('v2f', coords.T.ravel().tolist()))
         # centres des lames
-        if False:
+        if DEBUG:
             pyglet.graphics.draw(self.e.N_lame, gl.GL_POINTS, ('v2f', self.e.lames[:2,:].T.ravel().tolist()))
 def main():
     platform = pyglet.window.get_platform()
