@@ -17,7 +17,7 @@ class EdgeGrid():
         self.figsize = 13
         self.line_width = 4.
 
-        self.N_lame = 72
+        self.N_lame = 8*72
         self.N_lame_X = np.int(np.sqrt(self.N_lame))#*np.sqrt(3) / 2)
 
         self.lames = np.zeros((4, self.N_lame))
@@ -27,13 +27,13 @@ class EdgeGrid():
         self.lames[1, :] *= np.sqrt(3) / 2
         self.lames[0, :] /= self.N_lame_X
         self.lames[1, :] /= self.N_lame_X
-        self.lames[0, :] += .25/self.N_lame_X
-        self.lames[1, :] += .5/self.N_lame_X # TODO : prove analytically
+        self.lames[0, :] += .5/self.N_lame_X
+        self.lames[1, :] += 1.5/self.N_lame_X # TODO : prove analytically
 
         self.lames_minmax = np.array([self.lames[0, :].min(), self.lames[0, :].max(), self.lames[1, :].min(), self.lames[1, :].max()])
         print(self.lames_minmax)
-        self.lame_length = .9/self.N_lame_X
-        self.lame_width = .02/self.N_lame_X
+        self.lame_length = .99/self.N_lame_X
+        self.lame_width = .03/self.N_lame_X
         print(self.lame_length)
         #self.lines = self.set_lines()
         self.f = .1
@@ -112,8 +112,8 @@ class EdgeGrid():
 
     def champ(self):
         force = np.zeros_like(self.lames[2, :])
-        noise = lambda t: 0.09 * np.exp((np.cos(2*np.pi*(t-0.) / 6.)-1.)/ 1.5**2)
-        damp = lambda t: 0.02 #* np.exp(np.cos(t / 6.) / 3.**2)
+        noise = lambda t: 0.2 * np.exp((np.cos(2*np.pi*(t-0.) / 6.)-1.)/ 1.5**2)
+        damp = lambda t: 0.01 #* np.exp(np.cos(t / 6.) / 3.**2)
         colin_t = lambda t: -1.*np.exp((np.cos(2*np.pi*(t-2.) / 6.)-1.)/ .3**2)
         cocir_t = lambda t: -4.*np.exp((np.cos(2*np.pi*(t-4.) / 6.)-1.)/ .5**2)
         cocir_d = lambda d: np.exp(-d/.1)
