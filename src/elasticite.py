@@ -17,6 +17,7 @@ class EdgeGrid():
 
         self.figsize = 13
         self.line_width = 4.
+        self.grid_type = 'hex'
         self.grid(N_lame=N_lame)
         self.lames[2, :] = np.pi*np.random.rand(self.N_lame)
 
@@ -27,16 +28,16 @@ class EdgeGrid():
         self.N_lame = N_lame
         self.N_lame_X = np.int(np.sqrt(self.N_lame))#*np.sqrt(3) / 2)
 
-        # TODO: make an object for the position of edges
-        self.lames = np.zeros((4, self.N_lame))
-        self.lames[0, :] = np.mod(np.arange(self.N_lame), self.N_lame_X)
-        self.lames[0, :] += np.mod(np.floor(np.arange(self.N_lame)/self.N_lame_X), 2)/2
-        self.lames[1, :] = np.floor(np.arange(self.N_lame)/self.N_lame_X)
-        self.lames[1, :] *= np.sqrt(3) / 2
-        self.lames[0, :] /= self.N_lame_X
-        self.lames[1, :] /= self.N_lame_X
-        self.lames[0, :] += .5/self.N_lame_X
-        self.lames[1, :] += 1.5/self.N_lame_X # TODO : prove analytically
+        if self.grid_type=='hex':
+            self.lames = np.zeros((4, self.N_lame))
+            self.lames[0, :] = np.mod(np.arange(self.N_lame), self.N_lame_X)
+            self.lames[0, :] += np.mod(np.floor(np.arange(self.N_lame)/self.N_lame_X), 2)/2
+            self.lames[1, :] = np.floor(np.arange(self.N_lame)/self.N_lame_X)
+            self.lames[1, :] *= np.sqrt(3) / 2
+            self.lames[0, :] /= self.N_lame_X
+            self.lames[1, :] /= self.N_lame_X
+            self.lames[0, :] += .5/self.N_lame_X
+            self.lames[1, :] += 1.5/self.N_lame_X # TODO : prove analytically
         self.lames_minmax = np.array([self.lames[0, :].min(), self.lames[0, :].max(), self.lames[1, :].min(), self.lames[1, :].max()])
         print(self.lames_minmax)
         self.lame_length = .99/self.N_lame_X
