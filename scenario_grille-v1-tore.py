@@ -14,8 +14,8 @@ class EdgeGrid(el.EdgeGrid):
         noise = lambda t: 1.* np.exp((np.cos(2*np.pi*(t-0.) / 6.)-1.)/ 1.5**2)
         damp = lambda t: 0.001 #* np.exp(np.cos(t / 6.) / 3.**2)
         cocir_t = lambda t: 1.5*np.exp((np.cos(2*np.pi*(t-2.) / 6.)-1.)/ .3**2)
-        colin_t = lambda t: -2.*np.exp((np.cos(2*np.pi*(t-4.) / 6.)-1.)/ .5**2)
         cocir_d = lambda d: np.exp(-d/.1)
+        colin_t = lambda t: -2.*np.exp((np.cos(2*np.pi*(t-4.) / 6.)-1.)/ .5**2)
         colin_d = lambda d: np.exp(-d/.05)
 
         force += colin_t(self.t) * np.sum(np.sin(2*(self.angle_relatif()))*colin_d(self.distance(do_torus=True)), axis=1)
