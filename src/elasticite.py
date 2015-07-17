@@ -11,13 +11,13 @@ DEBUG = False
 #import matplotlib.pyplot as plt
 #
 class EdgeGrid():
-    def __init__(self):
+    def __init__(self, N_lame=8*72):
         self.t = time.time()
 
         self.figsize = 13
         self.line_width = 4.
 
-        self.N_lame = 8*72
+        self.N_lame = N_lame
         self.N_lame_X = np.int(np.sqrt(self.N_lame))#*np.sqrt(3) / 2)
 
         # TODO: make an object for the position of edges
@@ -129,16 +129,16 @@ class EdgeGrid():
         force = np.zeros_like(self.lames[2, :])
         noise = lambda t: 0.2 * np.exp((np.cos(2*np.pi*(t-0.) / 6.)-1.)/ 1.5**2)
         damp = lambda t: 0.01 #* np.exp(np.cos(t / 6.) / 3.**2)
-        colin_t = lambda t: -1.*np.exp((np.cos(2*np.pi*(t-2.) / 6.)-1.)/ .3**2)
+        colin_t = lambda t: -.1*np.exp((np.cos(2*np.pi*(t-2.) / 6.)-1.)/ .3**2)
         cocir_t = lambda t: -4.*np.exp((np.cos(2*np.pi*(t-4.) / 6.)-1.)/ .5**2)
-        cocir_d = lambda d: np.exp(-d/.1)
-        colin_d = lambda d: np.exp(-d/.5)
+        cocir_d = lambda d: np.exp(-d/.05)
+        colin_d = lambda d: np.exp(-d/.2)
 
-        force += cocir_t(self.t) * np.sum(np.sin(2*(self.angle_relatif()))*cocir_d(self.distance()), axis=1)
-        force += colin_t(self.t) * np.sum(np.sin(2*(self.angle_cocir()))*colin_d(self.distance()), axis=1)
+        force += colin_t(self.t) * np.sum(np.sin(2*(self.angle_relatif()))*colin_d(self.distance()), axis=1)
+        force += cocir_t(self.t) * np.sum(np.sin(2*(self.angle_cocir()))*cocir_d(self.distance()), axis=1)
         force += noise(self.t)*np.pi*np.random.randn(self.N_lame)
         force -= damp(self.t) * self.lames[3, :]/self.dt
-        return force
+        return 42.*force
 
     def update(self):
         self.dt = time.time() - self.t
