@@ -1,6 +1,8 @@
 """
 
-Dans une grille en tore (pacman) privilégie les co-linéarités à angles triangulaires.
+Dans une grille en tore (pacman) privilégie les co-circulrités en évitant les co-linéarités
+
+Short-range pour donner des patterns locaux
 
 """
 
@@ -15,9 +17,9 @@ class EdgeGrid(el.EdgeGrid):
         colin_d = lambda d: np.exp(-d/.05) #np.exp(-np.log((d+1.e-12)/.05)**2/2/1.5)
 
         #delta_angle = np.mod(self.angle_relatif()-np.pi/3., 2*np.pi/3)
-        delta_angle = self.angle_relatif()-np.pi/3.
+        delta_angle = self.angle_relatif()-np.pi/2.
         #delta_angle *= np.sign(delta_angle)
-        force += colin_t(self.t) * np.sum(np.sin(6*delta_angle)*colin_d(self.distance(do_torus=True)), axis=1)
+        force += colin_t(self.t) * np.sum(np.sin(4*delta_angle)*colin_d(self.distance(do_torus=True)), axis=1)
         force += noise(self.t)*np.pi*np.random.randn(self.N_lame)
         force -= damp(self.t) * self.lames[3, :]/self.dt
         return 100. * force
