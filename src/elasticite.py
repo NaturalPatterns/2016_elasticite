@@ -31,10 +31,10 @@ class EdgeGrid():
         self.lames[1, :] += 1.5/self.N_lame_X # TODO : prove analytically
 
         self.lames_minmax = np.array([self.lames[0, :].min(), self.lames[0, :].max(), self.lames[1, :].min(), self.lames[1, :].max()])
-        print(self.lames_minmax)
+        #print(self.lames_minmax)
         self.lame_length = .99/self.N_lame_X
         self.lame_width = .03/self.N_lame_X
-        print(self.lame_length)
+        #print(self.lame_length)
         #self.lines = self.set_lines()
         self.f = .1
 
@@ -250,10 +250,10 @@ class Window(pyglet.window.Window):
         - S : slower
 
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(self, e, *args, **kwargs):
         #super(Window, self).__init__(*args, **kwargs)
         super(Window, self).__init__(config=smoothConfig, *args, **kwargs)
-        self.e = EdgeGrid()
+        self.e = e
 
     #@self.event
     def on_key_press(self, symbol, modifiers):
@@ -312,7 +312,7 @@ class Window(pyglet.window.Window):
         # centres des lames
         if DEBUG:
             pyglet.graphics.draw(self.e.N_lame, gl.GL_POINTS, ('v2f', self.e.lames[:2,:].T.ravel().tolist()))
-def main():
+def main(e):
     platform = pyglet.window.get_platform()
     print "platform" , platform
     display = platform.get_default_display()
@@ -327,12 +327,13 @@ def main():
     def callback(dt):
         #print('%f seconds since last callback' % dt , '%f  fps' % pyglet.clock.get_fps())
         pass
-    window = Window(width=screen.width*2/3, height=screen.height*2/3)
+    window = Window(e, width=screen.width*2/3, height=screen.height*2/3)
     window.set_location(screen.width/3, screen.height/3)
     pyglet.gl.glClearColor(1., 1., 1., 1.)
     pyglet.clock.schedule(callback)
     pyglet.app.run()
 
 if __name__ == '__main__':
-    main()
+    e = EdgeGrid()
+    main(e)
 
