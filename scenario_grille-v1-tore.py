@@ -25,5 +25,5 @@ class EdgeGrid(el.EdgeGrid):
         speed = lambda t: 50.*(1-np.exp((np.cos(2*np.pi*(t-4.) / 6.)-1.)/ .5**2))
         return speed(self.t) * force
 
-e = EdgeGrid()
+e = EdgeGrid(N_lame=16*72)
 el.main(e)
