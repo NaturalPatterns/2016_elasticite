@@ -20,6 +20,7 @@ class EdgeGrid():
         self.N_lame = 8*72
         self.N_lame_X = np.int(np.sqrt(self.N_lame))#*np.sqrt(3) / 2)
 
+        # TODO: make an object for the position of edges
         self.lames = np.zeros((4, self.N_lame))
         self.lames[0, :] = np.mod(np.arange(self.N_lame), self.N_lame_X)
         self.lames[0, :] += np.mod(np.floor(np.arange(self.N_lame)/self.N_lame_X), 2)/2
@@ -29,6 +30,7 @@ class EdgeGrid():
         self.lames[1, :] /= self.N_lame_X
         self.lames[0, :] += .5/self.N_lame_X
         self.lames[1, :] += 1.5/self.N_lame_X # TODO : prove analytically
+        self.lames[2, :] = np.pi*np.random.rand(self.N_lame)
 
         self.lames_minmax = np.array([self.lames[0, :].min(), self.lames[0, :].max(), self.lames[1, :].min(), self.lames[1, :].max()])
         #print(self.lames_minmax)
@@ -93,20 +95,33 @@ class EdgeGrid():
                               int((bord+self.lames[1, i]*(1-2*bord))*N_Y)]
         return angles - np.pi/2
 
-    def pos_rel(self):
+    def pos_rel(self, do_torus=False):
+        def torus(x, w=1.):
+            """
+            center x in the range [-w/2., w/2.]
+
+            To see what this does, try out:
+            >> x = np.linspace(-4,4,100)
+            >> pylab.plot(x, torus(x, 2.))
+
+            """
+            return np.mod(x + w/2., w) - w/2.
         dx = self.lames[0, :, np.newaxis]-self.lames[0, np.newaxis, :]
         dy = self.lames[1, :, np.newaxis]-self.lames[1, np.newaxis, :]
-        return dx, dy
+        if do_torus:
+            return torus(dx), torus(dy)
+        else:
+            return dx, dy
 
-    def distance(self):
-        dx, dy = self.pos_rel()
+    def distance(self, do_torus=False):
+        dx, dy = self.pos_rel(do_torus=do_torus)
         return np.sqrt(dx **2 + dy **2)
 
     def angle_relatif(self):
         return self.lames[2, :, np.newaxis]-self.lames[2, np.newaxis, :]
 
-    def angle_cocir(self):
-        dx, dy = self.pos_rel()
+    def angle_cocir(self, do_torus=False):
+        dx, dy = self.pos_rel(do_torus=do_torus)
         theta = self.angle_relatif()
         return np.arctan2(dy, dx) - np.pi/2 - theta
 
