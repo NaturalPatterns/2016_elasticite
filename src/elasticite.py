@@ -10,12 +10,19 @@ DEBUG = False
 #matplotlib.use("Agg") # agg-backend, so we can create figures without x-server (no PDF, just PNG etc.)
 #import matplotlib.pyplot as plt
 #
+
 class EdgeGrid():
     def __init__(self, N_lame=8*72):
         self.t = time.time()
 
         self.figsize = 13
         self.line_width = 4.
+        self.grid(N_lame=N_lame)
+        self.lames[2, :] = np.pi*np.random.rand(self.N_lame)
+
+        self.f = .1
+
+    def grid(self, N_lame=8*72):
 
         self.N_lame = N_lame
         self.N_lame_X = np.int(np.sqrt(self.N_lame))#*np.sqrt(3) / 2)
@@ -30,16 +37,12 @@ class EdgeGrid():
         self.lames[1, :] /= self.N_lame_X
         self.lames[0, :] += .5/self.N_lame_X
         self.lames[1, :] += 1.5/self.N_lame_X # TODO : prove analytically
-        self.lames[2, :] = np.pi*np.random.rand(self.N_lame)
-
         self.lames_minmax = np.array([self.lames[0, :].min(), self.lames[0, :].max(), self.lames[1, :].min(), self.lames[1, :].max()])
-        #print(self.lames_minmax)
+        print(self.lames_minmax)
         self.lame_length = .99/self.N_lame_X
         self.lame_width = .03/self.N_lame_X
         #print(self.lame_length)
         #self.lines = self.set_lines()
-        self.f = .1
-
     def theta_E(self, im, X_, Y_, w):
         try:
             assert(self.slip.N_X==im.shape[1])
