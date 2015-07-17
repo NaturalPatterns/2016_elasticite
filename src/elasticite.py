@@ -43,6 +43,7 @@ class EdgeGrid():
         self.lame_width = .03/self.N_lame_X
         #print(self.lame_length)
         #self.lines = self.set_lines()
+
     def theta_E(self, im, X_, Y_, w):
         try:
             assert(self.slip.N_X==im.shape[1])
