@@ -343,14 +343,14 @@ class Window(pyglet.window.Window):
     #@self.win.event
     def on_draw(self):
         if self.e.stream:
-            print "Sending request "
+            if self.e.verb: print("Sending request")
             self.e.socket.send ("Hello")
             #message = self.e.socket.recv()
             #print "Received reply ", message
             #return
 
             X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], recv_array(self.e.socket)
-            print "Received reply ", Theta.shape
+            if self.e.verb: print("Received reply ", Theta.shape)
         else:
             self.e.update()
             X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], self.e.lames[2, :]
@@ -393,20 +393,19 @@ def server(e):
     context = zmq.Context()
     socket = context.socket(zmq.REP)
     socket.bind("tcp://*:%s" % e.port)
-    print "Running server on port: ", e.port
+    if e.verb: print("Running server on port: ", e.port)
     # serves only 5 request and dies
     while True:
         # Wait for next request from client
         message = socket.recv()
-        print "Received request %s" % message
+        if e.verb: print("Received request %s" % message)
         e.update()
         send_array(socket, e.lames[2, :])
-        #socket.send("World from %s" % e.port)
 
 def client(e):
     if e.stream:
         context = zmq.Context()
-        print "Connecting to server with port %s" % e.port
+        if e.verb: print("Connecting to server with port %s" % e.port)
         e.socket = context.socket(zmq.REQ)
         e.socket.connect ("tcp://localhost:%s" % e.port)
 
@@ -431,7 +430,6 @@ def client(e):
     pyglet.app.run()
 
 def main(e):
-    print e.display, e.stream
     # Now we can run the server
     if e.display:
         # Now we can connect a client to the server
