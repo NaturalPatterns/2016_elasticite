@@ -8,10 +8,13 @@ Dans une grille en tore (pacman) privilégie les co-circulrités en évitant les
 Short-range pour donner des patterns locaux
 
 """
+import sys
+if len(sys.argv)>1: mode = sys.argv[1]
+else: mode = 'both'
 
 import elasticite as el
 import numpy as np
-class EdgeGrid(el.EdgeGrid):
+class EdgeGrid(el.EdgeGrid, mode=mode):
     def champ(self):
         force = np.zeros_like(self.lames[2, :])
         noise = lambda t: .1* np.exp((np.cos(2*np.pi*(t-0.) / 6.)-1.)/ 1.5**2)

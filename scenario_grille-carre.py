@@ -7,10 +7,13 @@ Dans une grille en tore (pacman) privilégie les co-linéarités à angle droit.
 
 
 """
+import sys
+if len(sys.argv)>1: mode = sys.argv[1]
+else: mode = 'both'
 
 import elasticite as el
 import numpy as np
-class EdgeGrid(el.EdgeGrid):
+class EdgeGrid(el.EdgeGrid, mode=mode):
     def champ(self):
         force = np.zeros_like(self.lames[2, :])
         damp = lambda t: 0.001

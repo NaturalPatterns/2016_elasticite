@@ -8,10 +8,13 @@ Dans une grille en tore (pacman) privilégie les co-linéarités à angles trian
 On fait passer la contrainte par une vague spatiale exogene (prédeterminée, pas émergente)
 
 """
+import sys
+if len(sys.argv)>1: mode = sys.argv[1]
+else: mode = 'both'
 
 import elasticite as el
 import numpy as np
-class EdgeGrid(el.EdgeGrid):
+class EdgeGrid(el.EdgeGrid, mode=mode):
     def champ(self):
         force = np.zeros_like(self.lames[2, :])
         noise = lambda t, x: 2* np.exp((np.cos(2*np.pi*((t-0.) / 6. + x))-1.)/ .1**2)
