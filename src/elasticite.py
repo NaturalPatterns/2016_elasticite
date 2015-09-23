@@ -12,23 +12,30 @@ DEBUG = False
 #
 
 class EdgeGrid():
-    def __init__(self, N_lame=8*72):
+    def __init__(self,
+                 N_lame=8*72,
+                 N_lame_X = None,
+                 figsize = 13,
+                 line_width = 4.,
+                 grid_type = 'hex',
+                 ):
         self.t = time.time()
 
-        self.figsize = 13
-        self.line_width = 4.
-        self.grid_type = 'hex'
-        self.grid(N_lame=N_lame)
+        self.figsize = figsize
+        self.line_width = line_width
+        self.grid_type = grid_type
+        self.grid(N_lame=N_lame, N_lame_X=N_lame_X)
         self.lames[2, :] = np.pi*np.random.rand(self.N_lame)
 
         self.f = .1
 
-    def grid(self, N_lame=8*72):
+    def grid(self, N_lame, N_lame_X):
 
         self.N_lame = N_lame
-        self.N_lame_X = np.int(np.sqrt(self.N_lame))#*np.sqrt(3) / 2)
+        #if N_lame_X is None:
 
         if self.grid_type=='hex':
+            self.N_lame_X = np.int(np.sqrt(self.N_lame))#*np.sqrt(3) / 2)
             self.lames = np.zeros((4, self.N_lame))
             self.lames[0, :] = np.mod(np.arange(self.N_lame), self.N_lame_X)
             self.lames[0, :] += np.mod(np.floor(np.arange(self.N_lame)/self.N_lame_X), 2)/2
@@ -38,6 +45,12 @@ class EdgeGrid():
             self.lames[1, :] /= self.N_lame_X
             self.lames[0, :] += .5/self.N_lame_X
             self.lames[1, :] += 1.5/self.N_lame_X # TODO : prove analytically
+        elif self.grid_type=='line':
+            self.N_lame_X = self.N_lame
+            self.lames = np.zeros((4, self.N_lame))
+            self.lames[0, :] = np.linspace(0, 1., self.N_lame, endpoint=True)
+            self.lames[1, :] = .5
+
         self.lames_minmax = np.array([self.lames[0, :].min(), self.lames[0, :].max(), self.lames[1, :].min(), self.lames[1, :].max()])
         print(self.lames_minmax)
         self.lame_length = .99/self.N_lame_X
