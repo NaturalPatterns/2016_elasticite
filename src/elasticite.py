@@ -10,6 +10,26 @@ DEBUG = False
 #matplotlib.use("Agg") # agg-backend, so we can create figures without x-server (no PDF, just PNG etc.)
 #import matplotlib.pyplot as plt
 #
+import zmq
+# https://zeromq.github.io/pyzmq/serialization.html
+def send_array(socket, A, flags=0, copy=True, track=False):
+    """send a numpy array with metadata"""
+    md = dict(
+        dtype = str(A.dtype),
+        shape = A.shape,
+    )
+    socket.send_json(md, flags|zmq.SNDMORE)
+    return socket.send(A, flags, copy=copy, track=track)
+
+def recv_array(socket, flags=0, copy=True, track=False):
+    """recv a numpy array"""
+    md = socket.recv_json(flags=flags)
+    msg = socket.recv(flags=flags, copy=copy, track=track)
+    buf = buffer(msg)
+    A = np.frombuffer(buf, dtype=md['dtype'])
+    return A.reshape(md['shape'])
+
+from  multiprocessing import Process
 
 class EdgeGrid():
     def __init__(self,
@@ -18,8 +38,16 @@ class EdgeGrid():
                  figsize = 13,
                  line_width = 4.,
                  grid_type = 'hex',
+                 verb = False,
+                 mode = 'both',
                  ):
         self.t = time.time()
+        self.verb = verb
+        self.display = (mode=='display') or (mode=='both')
+        self.stream =  (mode=='stream') or (mode=='both')
+        self.serial =  (mode=='serial') # converting a stream to the serial port to control the arduino
+
+        self.port = "5556"
 
         self.figsize = figsize
         self.line_width = line_width
@@ -57,6 +85,7 @@ class EdgeGrid():
         self.lame_width = .03/self.N_lame_X
         #print(self.lame_length)
         #self.lines = self.set_lines()
+
 
     def theta_E(self, im, X_, Y_, w):
         try:
@@ -263,12 +292,14 @@ class EdgeGrid():
             #</td></tr></table></center>""".format(opts, self.vext[1:], self.fname(name))
         #return display(HTML(s))
 #
-import pyglet
-from pyglet.gl.glu import gluLookAt
-import pyglet.gl as gl
-
-smoothConfig = gl.Config(sample_buffers=1, samples=4,
-                                        depth_size=16, double_buffer=True)
+try:
+    import pyglet
+    from pyglet.gl.glu import gluLookAt
+    import pyglet.gl as gl
+    smoothConfig = gl.Config(sample_buffers=1, samples=4,
+                             depth_size=16, double_buffer=True)
+except:
+    print('Could not load pyglet')
 
 class Window(pyglet.window.Window):
     """
@@ -310,7 +341,17 @@ class Window(pyglet.window.Window):
 #
     #@self.win.event
     def on_draw(self):
-        self.e.update()
+        #self.e.update()
+        #X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], self.e.lames[2, :]
+        print "Sending request "
+        self.e.socket.send ("Hello")
+        #message = self.e.socket.recv()
+        #print "Received reply ", message
+        #return
+
+        X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], recv_array(self.e.socket)
+        print "Received reply ", Theta.shape
+
         self.W = float(self.width)/self.height
         self.clear()
         gl.glMatrixMode(gl.GL_PROJECTION);
@@ -323,7 +364,6 @@ class Window(pyglet.window.Window):
         gl.glEnable (gl.GL_BLEND)
         #gl.glHint(gl.GL_LINE_SMOOTH_HINT, gl.GL_NICEST)
         gl.glColor3f(0., 0., 0.)
-        X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], self.e.lames[2, :]
         dX, dY = np.cos(Theta)/2., np.sin(Theta)/2.
         # coords = np.vstack((X-dX*self.e.lame_length, Y-dY*self.e.lame_length, X+dX*self.e.lame_length, Y+dY*self.e.lame_length))
         coords = np.vstack((
@@ -345,7 +385,27 @@ class Window(pyglet.window.Window):
         # centres des lames
         if DEBUG:
             pyglet.graphics.draw(self.e.N_lame, gl.GL_POINTS, ('v2f', self.e.lames[:2,:].T.ravel().tolist()))
-def main(e):
+#
+def server(e):
+    context = zmq.Context()
+    socket = context.socket(zmq.REP)
+    socket.bind("tcp://*:%s" % e.port)
+    print "Running server on port: ", e.port
+    # serves only 5 request and dies
+    while True:
+        # Wait for next request from client
+        message = socket.recv()
+        print "Received request %s" % message
+        e.update()
+        send_array(socket, e.lames[2, :])
+        #socket.send("World from %s" % e.port)
+
+def client(e):
+    context = zmq.Context()
+    print "Connecting to server with port %s" % e.port
+    e.socket = context.socket(zmq.REQ)
+    e.socket.connect ("tcp://localhost:%s" % e.port)
+
     platform = pyglet.window.get_platform()
     print "platform" , platform
     display = platform.get_default_display()
@@ -358,13 +418,24 @@ def main(e):
     N_screen = 1# len(screens) # number of screens
     assert N_screen == 1 # we should be running on one screen only
     def callback(dt):
-        #print('%f seconds since last callback' % dt , '%f  fps' % pyglet.clock.get_fps())
+        if e.verb: print('%f seconds since last callback' % dt , '%f  fps' % pyglet.clock.get_fps())
         pass
     window = Window(e, width=screen.width*2/3, height=screen.height*2/3)
     window.set_location(screen.width/3, screen.height/3)
     pyglet.gl.glClearColor(1., 1., 1., 1.)
     pyglet.clock.schedule(callback)
     pyglet.app.run()
+
+def main(e):
+    # Now we can run the server
+    if e.stream:
+        #Process(target=server, args=(e,)).start()
+        server(e)
+
+    elif e.display:
+        # Now we can connect a client to all these servers
+        #Process(target=client, args=(e,)).start()
+        client(e)
 
 if __name__ == '__main__':
     e = EdgeGrid()
