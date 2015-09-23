@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf8 -*-
+
 """
 
 Dans une grille en tore (pacman) privilégie les co-linéarités à angles triangulaires.
