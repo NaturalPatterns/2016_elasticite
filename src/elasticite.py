@@ -44,7 +44,8 @@ class EdgeGrid():
         self.t = time.time()
         self.verb = verb
         self.display = (mode=='display') or (mode=='both')
-        self.stream =  (mode=='stream') or (mode=='both')
+        self.stream =  (mode=='stream') or (mode=='display')
+        #if mode=='display': self.stream = True
         self.serial =  (mode=='serial') # converting a stream to the serial port to control the arduino
 
         self.port = "5556"
@@ -341,16 +342,18 @@ class Window(pyglet.window.Window):
 #
     #@self.win.event
     def on_draw(self):
-        #self.e.update()
-        #X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], self.e.lames[2, :]
-        print "Sending request "
-        self.e.socket.send ("Hello")
-        #message = self.e.socket.recv()
-        #print "Received reply ", message
-        #return
+        if self.e.stream:
+            print "Sending request "
+            self.e.socket.send ("Hello")
+            #message = self.e.socket.recv()
+            #print "Received reply ", message
+            #return
 
-        X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], recv_array(self.e.socket)
-        print "Received reply ", Theta.shape
+            X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], recv_array(self.e.socket)
+            print "Received reply ", Theta.shape
+        else:
+            self.e.update()
+            X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], self.e.lames[2, :]
 
         self.W = float(self.width)/self.height
         self.clear()
@@ -401,10 +404,11 @@ def server(e):
         #socket.send("World from %s" % e.port)
 
 def client(e):
-    context = zmq.Context()
-    print "Connecting to server with port %s" % e.port
-    e.socket = context.socket(zmq.REQ)
-    e.socket.connect ("tcp://localhost:%s" % e.port)
+    if e.stream:
+        context = zmq.Context()
+        print "Connecting to server with port %s" % e.port
+        e.socket = context.socket(zmq.REQ)
+        e.socket.connect ("tcp://localhost:%s" % e.port)
 
     platform = pyglet.window.get_platform()
     print "platform" , platform
@@ -427,15 +431,16 @@ def client(e):
     pyglet.app.run()
 
 def main(e):
+    print e.display, e.stream
     # Now we can run the server
-    if e.stream:
-        #Process(target=server, args=(e,)).start()
-        server(e)
-
-    elif e.display:
-        # Now we can connect a client to all these servers
+    if e.display:
+        # Now we can connect a client to the server
         #Process(target=client, args=(e,)).start()
         client(e)
+
+    elif e.stream:
+        #Process(target=server, args=(e,)).start()
+        server(e)
 
 if __name__ == '__main__':
     e = EdgeGrid()
