@@ -13,7 +13,7 @@ else: mode = 'both'
 
 import elasticite as el
 import numpy as np
-class EdgeGrid(el.EdgeGrid, mode=mode):
+class EdgeGrid(el.EdgeGrid):
     def champ(self):
         force = np.zeros_like(self.lames[2, :])
         damp = lambda t: 0.001
@@ -28,5 +28,5 @@ class EdgeGrid(el.EdgeGrid, mode=mode):
         force -= damp(self.t) * self.lames[3, :]/self.dt
         return 100. * force
 
-e = EdgeGrid()
+e = EdgeGrid(mode=mode)
 el.main(e)
