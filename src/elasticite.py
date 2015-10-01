@@ -25,8 +25,8 @@ def recv_array(socket, flags=0, copy=True, track=False):
     """recv a numpy array"""
     md = socket.recv_json(flags=flags)
     msg = socket.recv(flags=flags, copy=copy, track=track)
-    buf = buffer(msg)
-    A = np.frombuffer(buf, dtype=md['dtype'])
+    # buf = buffer(msg)
+    A = np.frombuffer(msg, dtype=md['dtype'])
     return A.reshape(md['shape'])
 
 from  multiprocessing import Process
@@ -338,13 +338,13 @@ class Window(pyglet.window.Window):
 #
     #@self.win.event
     def on_resize(self, width, height):
-        print 'The window was resized to %dx%d' % (width, height)
+        print('The window was resized to %dx%d' % (width, height))
 #
     #@self.win.event
     def on_draw(self):
         if self.e.stream:
             if self.e.verb: print("Sending request")
-            self.e.socket.send ("Hello")
+            self.e.socket.send (b"Hello")
             #message = self.e.socket.recv()
             #print "Received reply ", message
             #return
@@ -410,13 +410,13 @@ def client(e):
         e.socket.connect ("tcp://localhost:%s" % e.port)
 
     platform = pyglet.window.get_platform()
-    print "platform" , platform
+    print("platform" , platform)
     display = platform.get_default_display()
-    print "display" , display
+    print("display" , display)
     screens = display.get_screens()
-    print "screens" , screens
+    print("screens" , screens)
     for i, screen in enumerate(screens):
-        print 'Screen %d: %dx%d at (%d,%d)' % (i, screen.width, screen.height, screen.x, screen.y)
+        print('Screen %d: %dx%d at (%d,%d)' % (i, screen.width, screen.height, screen.x, screen.y))
     N_screen = len(screens) # number of screens
     N_screen = 1# len(screens) # number of screens
     assert N_screen == 1 # we should be running on one screen only
@@ -430,6 +430,7 @@ def client(e):
     pyglet.app.run()
 
 def main(e):
+#     print(e.display, e.stream)
     # Now we can run the server
     if e.display:
         # Now we can connect a client to the server
