@@ -10,7 +10,6 @@ DEBUG = False
 #matplotlib.use("Agg") # agg-backend, so we can create figures without x-server (no PDF, just PNG etc.)
 #import matplotlib.pyplot as plt
 #
-import zmq
 # https://zeromq.github.io/pyzmq/serialization.html
 def send_array(socket, A, flags=0, copy=True, track=False):
     """send a numpy array with metadata"""
@@ -55,6 +54,12 @@ class EdgeGrid():
         self.grid_type = grid_type
         self.grid(N_lame=N_lame, N_lame_X=N_lame_X)
         self.lames[2, :] = np.pi*np.random.rand(self.N_lame)
+        
+        # moteur:
+        self.serial_port, self.baud_rate = '/dev/ttyACM0', 230400
+        # 1.8 deg par pas x 32 divisions de pas
+        # demultiplication : pignon1= 14 dents, pignon2 = 40 dents
+        self.n_pas = 200. * 32. * 40 / 14
 
         self.f = .1
 
@@ -390,6 +395,7 @@ class Window(pyglet.window.Window):
             pyglet.graphics.draw(self.e.N_lame, gl.GL_POINTS, ('v2f', self.e.lames[:2,:].T.ravel().tolist()))
 #
 def server(e):
+    import zmq
     context = zmq.Context()
     socket = context.socket(zmq.REP)
     socket.bind("tcp://*:%s" % e.port)
@@ -402,8 +408,25 @@ def server(e):
         e.update()
         send_array(socket, e.lames[2, :])
 
+def serial(e):
+    import serial
+    def convert(increment):
+        return 'A' + str(increment[0])
+    
+    with serial.Serial(e.serial_port, e.baud_rate) as ser:
+        if e.verb: print("Running serial on port: ", e.serial_port)
+        nbpas_old = np.zeros_like(e.lames[2, :], dtype=np.int)
+        # serves only 5 request and dies
+        while True:
+            # Wait for next request from client
+            e.update()
+            dnbpas =  int(e.lames[2, :]*e.n_pas) - nbpas_old
+            nbpas_old = nbpas_old + dnbpas
+            ser.write(convert(dnbpas))
+
 def client(e):
     if e.stream:
+        import zmq
         context = zmq.Context()
         if e.verb: print("Connecting to server with port %s" % e.port)
         e.socket = context.socket(zmq.REQ)
@@ -438,6 +461,10 @@ def main(e):
         client(e)
 
     elif e.stream:
+        #Process(target=server, args=(e,)).start()
+        server(e)
+
+    elif e.serial:
         #Process(target=server, args=(e,)).start()
         server(e)
 
