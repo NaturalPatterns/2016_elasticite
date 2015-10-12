@@ -9,18 +9,18 @@ Sur une ligne de lames, on fait tourner les lames avec un mouvement relativement
 import sys
 if len(sys.argv)>1: mode = sys.argv[1]
 else: mode = 'both'
+mode = 'serial'
 
 import elasticite as el
+import time
+t0 = time.time()
 import numpy as np
 class EdgeGrid(el.EdgeGrid):
-    def champ(self):
-        force = np.zeros_like(self.lames[2, :])
-        angle = lambda t, x: np.pi*np.mod(t / 6.-x, 1.)
-        damp = lambda t: 0.01
+    def update(self):
+        self.dt = time.time() - self.t
+        self.lames[2, :] = 20.*np.pi/180. * np.sin(2*np.pi*(self.t-t0)/10.)
+        #print(self.t, self.lames[2, 0])
+        self.t = time.time()
 
-        force = angle(self.t, self.lames[0, :]) - self.lames[2, :]
-        force -= damp(self.t) * self.lames[3, :]/self.dt
-        return 10. * force
-
-e = EdgeGrid(N_lame=20, grid_type='line', mode=mode)
+e = EdgeGrid(N_lame=20, grid_type='line', mode=mode, verb=True)
 el.main(e)

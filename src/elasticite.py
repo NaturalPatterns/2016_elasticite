@@ -57,7 +57,7 @@ class EdgeGrid():
         
         # moteur:
         self.serial_port, self.baud_rate = '/dev/ttyACM0', 230400
-        # 1.8 deg par pas x 32 divisions de pas
+        # 1.8 deg par pas (=200 pas par tour) x 32 divisions de pas
         # demultiplication : pignon1= 14 dents, pignon2 = 40 dents
         self.n_pas = 200. * 32. * 40 / 14
 
@@ -167,7 +167,7 @@ class EdgeGrid():
             return dx, dy
 
     def distance(self, do_torus=False):
-        dx, dy = self.pos_rel(do_torus=do_torus)
+        dx, dy = self.pos_rel(do_torus=do_torus) 
         return np.sqrt(dx **2 + dy **2)
 
     def angle_relatif(self):
@@ -193,11 +193,14 @@ class EdgeGrid():
         force -= damp(self.t) * self.lames[3, :]/self.dt
         return 42.*force
 
-    def update(self):
+    def update(self, clamp=None):
         self.dt = time.time() - self.t
-        self.lames[2, :] += self.lames[3, :]*self.dt/2
-        self.lames[3, :] += self.champ() * self.dt
-        self.lames[2, :] += self.lames[3, :]*self.dt/2
+        if not clamp is None:
+            self.lames[2, :] += self.lames[3, :]*self.dt/2
+            self.lames[3, :] += self.champ() * self.dt
+            self.lames[2, :] += self.lames[3, :]*self.dt/2
+        else:
+            self.lames[2, :] = clamp
         self.t = time.time()
 
     #def show_edges(self, fig=None, a=None):
@@ -410,18 +413,23 @@ def server(e):
 
 def serial(e):
     import serial
+    alphabet = 'ABCDEFGHIJKLMNOPQRSTUVwXYZabcdefghijklmnopqrstuvwxyz'
     def convert(increment):
-        return 'A' + str(increment[0])
+        #msg  = ''
+        #for i in len(increment):
+        #    msg += alphabet(i) + str(increment[i])  + ';' 
+        msg = sum([alphabet(i) + str(increment[i])  + ';' for i in len(increment)]) 
+        return msg  
     
     with serial.Serial(e.serial_port, e.baud_rate) as ser:
         if e.verb: print("Running serial on port: ", e.serial_port)
         nbpas_old = np.zeros_like(e.lames[2, :], dtype=np.int)
-        # serves only 5 request and dies
         while True:
-            # Wait for next request from client
             e.update()
-            dnbpas =  int(e.lames[2, :]*e.n_pas) - nbpas_old
+            nbpas = [int(theta*e.n_pas) for theta in e.lames[2, :]]
+            dnbpas =  nbpas - nbpas_old
             nbpas_old = nbpas_old + dnbpas
+            if e.verb: print(e.t, convert(dnbpas))
             ser.write(convert(dnbpas))
 
 def client(e):
@@ -466,7 +474,7 @@ def main(e):
 
     elif e.serial:
         #Process(target=server, args=(e,)).start()
-        server(e)
+        serial(e)
 
 if __name__ == '__main__':
     e = EdgeGrid()
