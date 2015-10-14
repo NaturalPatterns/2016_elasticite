@@ -3,6 +3,7 @@
 
 import numpy as np
 import time
+import vapory
 
 DEBUG = False
 
@@ -27,6 +28,14 @@ def recv_array(socket, flags=0, copy=True, track=False):
     # buf = buffer(msg)
     A = np.frombuffer(msg, dtype=md['dtype'])
     return A.reshape(md['shape'])
+
+import inspect
+def get_default_args(func):
+    """
+    returns a dictionary of arg_name:default_values for the input function
+    """
+    args, varargs, keywords, defaults = inspect.getargspec(func)
+    return dict(zip(args[-len(defaults):], defaults))
 
 from  multiprocessing import Process
 
@@ -62,6 +71,10 @@ class EdgeGrid():
         # demultiplication : pignon1= 14 dents, pignon2 = 40 dents
         self.n_pas = 200. * 32. * 40 / 14
 
+        # taille installation
+        self.total_width = 6 # en mètres        
+        self.lame_height = 3 # en mètres
+        self.background_depth = 100 # taille du 104 en profondeur
         self.f = .1
 
     def time(self, init=False):
@@ -91,7 +104,7 @@ class EdgeGrid():
             self.lames[1, :] = .5
 
         self.lames_minmax = np.array([self.lames[0, :].min(), self.lames[0, :].max(), self.lames[1, :].min(), self.lames[1, :].max()])
-        print(self.lames_minmax)
+        #print(self.lames_minmax)
         self.lame_length = .99/self.N_lame_X
         self.lame_width = .03/self.N_lame_X
         #print(self.lame_length)
@@ -198,15 +211,61 @@ class EdgeGrid():
         force -= damp(self.t) * self.lames[3, :]/self.dt
         return 42.*force
 
-    def update(self, clamp=None):
+    def update(self):
         self.dt = time.time() - self.t
-        if not clamp is None:
-            self.lames[2, :] += self.lames[3, :]*self.dt/2
-            self.lames[3, :] += self.champ() * self.dt
-            self.lames[2, :] += self.lames[3, :]*self.dt/2
-        else:
-            self.lames[2, :] = clamp
+        self.lames[2, :] += self.lames[3, :]*self.dt/2
+        self.lames[3, :] += self.champ() * self.dt
+        self.lames[2, :] += self.lames[3, :]*self.dt/2
         self.t = time.time()
+        
+    def render(self, fps=10, W=1000, H=618, location=[0, 1.75, -4], head_size=.4, light_intensity=1.2, reflection=1., 
+               look_at=[0, 1.5, 0], antialiasing=0.001, duration=3):
+        
+        head_location = np.array(location) - np.array([0, 0, head_size])
+        
+        import vapory
+        light = vapory.LightSource([15, 15, 1], 'color', [light_intensity]*3)
+
+
+        background = vapory.Box([0, 0, 0], [1, 1, 1], 
+                 vapory.Texture(vapory.Pigment(vapory.ImageMap('png', '"../files/VISUEL_104.png"', 'once')),
+                         vapory.Finish('ambient', 1.2) ),
+                 'scale', [self.background_depth, self.background_depth, 0],
+                 'translate', [-self.background_depth/2, -.45*self.background_depth, -self.background_depth/2])
+        me = vapory.Sphere( head_location, head_size, vapory.Texture( vapory.Pigment( 'color', [1, 0, 1] )))
+
+
+        def scene(t):
+            """ 
+            Returns the scene at time 't' (in seconds) 
+            """
+            self.t = t
+            self.update()
+            objects = [background, me, light]
+
+            for i_lame in range(self.N_lame):
+                objects.append(vapory.Box([-self.lame_length/2*self.total_width, 0, -self.lame_width/2*self.total_width], 
+                                   [self.lame_length/2*self.total_width, self.lame_height,
+                                    self.lame_width/2*self.total_width], 
+                                   vapory.Pigment('color', [1, 1, 1]),
+                                   vapory.Finish('phong', 0.8, 'reflection', reflection),
+                                   'rotate', (0, self.lames[2, i_lame]*180/2/np.pi, 0),
+                                   'translate', ((self.lames[0, i_lame]-1/2)*self.total_width, 0, 0), 
+                                   )
+                              )
+
+            objects.append(light)
+            return vapory.Scene( vapory.Camera("location", location, "look_at", look_at),
+                           objects = objects,
+                           included=["glass.inc"] )
+
+        def make_frame(t):
+            return scene(t).render(width=W, height=H, antialiasing=antialiasing)
+
+        import moviepy.editor as mpy
+        clip = mpy.VideoClip(make_frame, duration=duration)
+        return clip.ipython_display(fps=fps, autoplay=1, loop=1, width=W, height=H)
+        
 
     #def show_edges(self, fig=None, a=None):
         #self.N_theta = 12

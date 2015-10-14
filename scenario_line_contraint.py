@@ -14,9 +14,8 @@ import elasticite as el
 import numpy as np
 class EdgeGrid(el.EdgeGrid):
     def update(self):
-        self.dt = self.time() - self.t
-        self.lames[2, :] = 20.*np.pi/180. * np.sin(2*np.pi*(self.t)/10.)
         self.t = self.time()
+        self.lames[2, :] = 20.*np.pi/180. * np.sin(2*np.pi*(self.t)/10.)
 
-e = EdgeGrid(N_lame=20, grid_type='line', mode=mode, verb=True)
+e = EdgeGrid(N_lame=20, grid_type='line', mode=mode, verb=False)
 el.main(e)
