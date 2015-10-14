@@ -59,13 +59,6 @@ class EdgeGrid():
         self.serial =  (mode=='serial') # converting a stream to the serial port to control the arduino
 
         self.port = "5556"
-
-        self.figsize = figsize
-        self.line_width = line_width
-        self.grid_type = grid_type
-        self.grid(N_lame=N_lame, N_lame_X=N_lame_X)
-        self.lames[2, :] = np.pi*np.random.rand(self.N_lame)
-        
         # moteur:
         self.serial_port, self.baud_rate = '/dev/ttyACM0', 230400
         # 1.8 deg par pas (=200 pas par tour) x 32 divisions de pas
@@ -73,10 +66,18 @@ class EdgeGrid():
         self.n_pas = 200. * 32. * 40 / 14
 
         # taille installation
-        self.total_width = 6 # en mètres        
+        self.total_width = 5 # en mètres        
         self.lame_height = 3 # en mètres
         self.background_depth = 100 # taille du 104 en profondeur
         self.f = .1
+
+        self.figsize = figsize
+        self.line_width = line_width
+        self.grid_type = grid_type
+        self.grid(N_lame=N_lame, N_lame_X=N_lame_X)
+        self.lames[2, :] = np.pi*np.random.rand(self.N_lame)
+        
+
 
     def time(self, init=False):
         if init: return time.time()
@@ -98,16 +99,21 @@ class EdgeGrid():
             self.lames[1, :] /= self.N_lame_X
             self.lames[0, :] += .5/self.N_lame_X
             self.lames[1, :] += 1.5/self.N_lame_X # TODO : prove analytically
+            self.lames[0, :] *= self.total_width
+            self.lames[1, :] *= self.total_width
+            self.lame_length = .99/self.N_lame_X*self.total_width
+            self.lame_width = .03/self.N_lame_X*self.total_width
         elif self.grid_type=='line':
             self.N_lame_X = self.N_lame
             self.lames = np.zeros((4, self.N_lame))
-            self.lames[0, :] = np.linspace(0, 1., self.N_lame, endpoint=True)
-            self.lames[1, :] = .5
+            self.lames[0, :] = np.linspace(0, self.total_width, self.N_lame, endpoint=True)
+            self.lames[1, :] = self.total_width/2
+            self.lame_length = .12 #  
+            self.lame_width = .052
 
         self.lames_minmax = np.array([self.lames[0, :].min(), self.lames[0, :].max(), self.lames[1, :].min(), self.lames[1, :].max()])
         #print(self.lames_minmax)
-        self.lame_length = .99/self.N_lame_X
-        self.lame_width = .03/self.N_lame_X
+
         #print(self.lame_length)
         #self.lines = self.set_lines()
 
@@ -244,15 +250,13 @@ class EdgeGrid():
             objects = [background, me, light]
 
             for i_lame in range(self.N_lame):
-                objects.append(vapory.Box([-self.lame_length/2*self.total_width, 0, -self.lame_width/2*self.total_width], 
-                                   [self.lame_length/2*self.total_width, self.lame_height,
-                                    self.lame_width/2*self.total_width], 
-                                   vapory.Pigment('color', [1, 1, 1]),
-                                   vapory.Finish('phong', 0.8, 'reflection', reflection),
-                                   'rotate', (0, self.lames[2, i_lame]*180/np.pi, 0),
-                                   'translate', ((self.lames[0, i_lame]-.5)*self.total_width, 0, 
-                                                 (self.lames[1, i_lame]-.5)*self.total_width)
-                                   )
+                objects.append(vapory.Box([-self.lame_length/2, 0, -self.lame_width/2], 
+                                          [self.lame_length/2, self.lame_height,  self.lame_width/2], 
+                                           vapory.Pigment('color', [1, 1, 1]),
+                                           vapory.Finish('phong', 0.8, 'reflection', reflection),
+                                           'rotate', (0, self.lames[2, i_lame]*180/np.pi, 0),
+                                           'translate', (self.lames[0, i_lame], 0, self.lames[1, i_lame])
+                                          )
                               )
 
             objects.append(light)
@@ -453,7 +457,13 @@ class Window(pyglet.window.Window):
         self.clear()
         gl.glMatrixMode(gl.GL_PROJECTION);
         gl.glLoadIdentity()
-        gl.gluOrtho2D(-(self.W-1)/2, (self.W+1)/2, 0, 1, 0, 0, 1);
+#                     gluOrtho2D sets up a two-dimensional orthographic viewing region.  
+#          Parameters left, right
+#                             Specify the coordinates for the left and right vertical clipping planes.
+#                         bottom, top
+#                             Specify the coordinates for the bottom and top horizontal clipping planes.
+#                         Description
+        gl.gluOrtho2D(-(self.W-1)/2*self.e.total_width, (self.W+1)/2*self.e.total_width, 0, self.e.total_width, 0, 0, 1);
         gl.glMatrixMode(gl.GL_MODELVIEW);
         gl.glLoadIdentity();
 
@@ -477,7 +487,7 @@ class Window(pyglet.window.Window):
         #pyglet.graphics.draw(4*self.e.N_lame, gl.GL_QUADS, ('v2f', coords.T.ravel().tolist()))
         # carré
         if DEBUG:
-            coords = np.array([[0., 1., 1., 0.], [0., 0., 1., 1.]])
+            coords = np.array([[0., self.e.total_width, self.e.total_width, 0.], [0., 0., self.e.total_width, self.e.total_width]])
             pyglet.graphics.draw(4, gl.GL_LINE_LOOP, ('v2f', coords.T.ravel().tolist()))
         # centres des lames
         if DEBUG:

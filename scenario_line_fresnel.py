@@ -16,7 +16,7 @@ location = el.get_default_args(el.EdgeGrid.render)['location']
 class EdgeGrid(el.EdgeGrid):
     def update(self):        
         XF = location[0]
-        ZF = location[2] + 3.5 * np.sin(2*np.pi*(self.t)/duration)
+        ZF = location[2] + 1.2 * np.sin(2*np.pi*(self.t)/duration)
         xf = .5 - XF/self.total_width
         zf = .5 - ZF/self.total_width
         self.lames[2, :] = np.mod(np.pi/2 + np.arctan2(self.lames[1, :]-zf, self.lames[0, :]-xf), np.pi)
