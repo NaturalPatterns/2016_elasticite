@@ -218,10 +218,11 @@ class EdgeGrid():
         self.lames[2, :] += self.lames[3, :]*self.dt/2
         
     def render(self, fps=10, W=1000, H=618, location=[0, 1.75, -4], head_size=.4, light_intensity=1.2, reflection=1., 
-               look_at=[0, 1.5, 0], antialiasing=0.001, duration=5):
+               look_at=[0, 1.5, 0], antialiasing=0.001, duration=5, fname='/tmp/temp.webm'):
         
         head_location = np.array(location) - np.array([0, 0, head_size])
         
+
         import vapory
         light = vapory.LightSource([15, 15, 1], 'color', [light_intensity]*3)
 
@@ -249,8 +250,8 @@ class EdgeGrid():
                                    vapory.Pigment('color', [1, 1, 1]),
                                    vapory.Finish('phong', 0.8, 'reflection', reflection),
                                    'rotate', (0, self.lames[2, i_lame]*180/np.pi, 0),
-                                   'translate', ((self.lames[0, i_lame]-1/2)*self.total_width, 0, 
-                                                 (self.lames[1, i_lame]-1/2)*self.total_width)
+                                   'translate', ((self.lames[0, i_lame]-.5)*self.total_width, 0, 
+                                                 (self.lames[1, i_lame]-.5)*self.total_width)
                                    )
                               )
 
@@ -259,13 +260,32 @@ class EdgeGrid():
                            objects = objects,
                            included=["glass.inc"] )
 
+        self.dt = 1./fps
         def make_frame(t):
             return scene(t).render(width=W, height=H, antialiasing=antialiasing)
 
         import moviepy.editor as mpy
         clip = mpy.VideoClip(make_frame, duration=duration)
-        return clip.ipython_display(fps=fps, autoplay=1, loop=1, width=W, height=H)
-        
+        clip.write_videofile(fname, fps=fps)
+#         return clip.ipython_display(fps=fps, autoplay=1, loop=1, width=W, height=H)
+#         def video(fname, mimetype):
+#             """Load the video in the file `fname`, with given mimetype, and display as HTML5 video.
+#             """
+#             from IPython.display import HTML
+#             from base64 import b64encode
+#             
+#             with open(fname, "rb") as f: 
+#                 video_encoded = b64encode(f.read()).decode("utf-8")
+# 
+#             video_tag= """
+#                             <center><video controls style='max-width:100%'>
+#                             <source src='data:{mimetype};base64,{b64}' type='video/{mimetype}' loop=1 autoplay=1>
+#                             Your browser does not support the video tag.
+#                             </video><center/>""".format(mimetype=mimetype, b64=video_encoded)
+#             return HTML(data=video_tag)
+# 
+#         return video(fname, fname.split('.')[-1])
+        return mpy.ipython_display(fname, fps=fps, loop=1, autoplay=1)
 
     #def show_edges(self, fig=None, a=None):
         #self.N_theta = 12
