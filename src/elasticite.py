@@ -40,7 +40,8 @@ class EdgeGrid():
                  verb = False,
                  mode = 'both',
                  ):
-        self.t = time.time()
+        self.t0 = self.time(True)
+        self.t = self.time()
         self.verb = verb
         self.display = (mode=='display') or (mode=='both')
         self.stream =  (mode=='stream') or (mode=='display')
@@ -63,6 +64,10 @@ class EdgeGrid():
 
         self.f = .1
 
+    def time(self, init=False):
+        if init: return time.time()
+        else: return time.time() - self.t0
+        
     def grid(self, N_lame, N_lame_X):
 
         self.N_lame = N_lame
