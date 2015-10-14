@@ -28,5 +28,5 @@ if __name__ == "__main__":
     import sys
     if len(sys.argv)>1: mode = sys.argv[1]
     else: mode = 'both'
-    e = el.EdgeGrid(N_lame=20, grid_type='line', mode=mode, verb=False)
+    e = el.EdgeGrid(N_lame=72, mode=mode, verb=False)
     el.main(e)

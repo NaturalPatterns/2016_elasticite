@@ -218,7 +218,7 @@ class EdgeGrid():
         self.lames[2, :] += self.lames[3, :]*self.dt/2
         
     def render(self, fps=10, W=1000, H=618, location=[0, 1.75, -4], head_size=.4, light_intensity=1.2, reflection=1., 
-               look_at=[0, 1.5, 0], antialiasing=0.001, duration=3):
+               look_at=[0, 1.5, 0], antialiasing=0.001, duration=5):
         
         head_location = np.array(location) - np.array([0, 0, head_size])
         
@@ -248,7 +248,7 @@ class EdgeGrid():
                                     self.lame_width/2*self.total_width], 
                                    vapory.Pigment('color', [1, 1, 1]),
                                    vapory.Finish('phong', 0.8, 'reflection', reflection),
-                                   'rotate', (0, self.lames[2, i_lame]*180/2/np.pi, 0),
+                                   'rotate', (0, self.lames[2, i_lame]*180/np.pi, 0),
                                    'translate', ((self.lames[0, i_lame]-1/2)*self.total_width, 0, 
                                                  (self.lames[1, i_lame]-1/2)*self.total_width)
                                    )
