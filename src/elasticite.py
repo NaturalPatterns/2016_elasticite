@@ -51,6 +51,7 @@ class EdgeGrid():
                  ):
         self.t0 = self.time(True)
         self.t = self.time()
+        self.dt = self.t - self.t0
         self.verb = verb
         self.display = (mode=='display') or (mode=='both')
         self.stream =  (mode=='stream') or (mode=='display')
@@ -212,11 +213,9 @@ class EdgeGrid():
         return 42.*force
 
     def update(self):
-        self.dt = time.time() - self.t
         self.lames[2, :] += self.lames[3, :]*self.dt/2
         self.lames[3, :] += self.champ() * self.dt
         self.lames[2, :] += self.lames[3, :]*self.dt/2
-        self.t = time.time()
         
     def render(self, fps=10, W=1000, H=618, location=[0, 1.75, -4], head_size=.4, light_intensity=1.2, reflection=1., 
                look_at=[0, 1.5, 0], antialiasing=0.001, duration=3):
@@ -250,7 +249,8 @@ class EdgeGrid():
                                    vapory.Pigment('color', [1, 1, 1]),
                                    vapory.Finish('phong', 0.8, 'reflection', reflection),
                                    'rotate', (0, self.lames[2, i_lame]*180/2/np.pi, 0),
-                                   'translate', ((self.lames[0, i_lame]-1/2)*self.total_width, 0, 0), 
+                                   'translate', ((self.lames[0, i_lame]-1/2)*self.total_width, 0, 
+                                                 (self.lames[1, i_lame]-1/2)*self.total_width)
                                    )
                               )
 
@@ -424,7 +424,9 @@ class Window(pyglet.window.Window):
             X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], recv_array(self.e.socket)
             if self.e.verb: print("Received reply ", Theta.shape)
         else:
+            self.e.dt = self.e.time() - self.e.t
             self.e.update()
+            self.e.t = self.e.time()
             X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], self.e.lames[2, :]
 
         self.W = float(self.width)/self.height
@@ -472,7 +474,9 @@ def server(e):
         # Wait for next request from client
         message = socket.recv()
         if e.verb: print("Received request %s" % message)
+        e.dt = e.time() - e.t
         e.update()
+        e.t = e.time()
         send_array(socket, e.lames[2, :])
 
 def serial(e):
@@ -489,7 +493,9 @@ def serial(e):
         if e.verb: print("Running serial on port: ", e.serial_port)
         nbpas_old = np.zeros_like(e.lames[2, :], dtype=np.int)
         while True:
+            e.dt = e.time() - e.t
             e.update()
+            e.t = e.time()
             nbpas = [int(theta*e.n_pas) for theta in e.lames[2, :]]
             dnbpas =  nbpas - nbpas_old
             nbpas_old = nbpas_old + dnbpas
