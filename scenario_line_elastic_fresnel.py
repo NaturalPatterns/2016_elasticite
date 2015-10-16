@@ -17,10 +17,8 @@ class EdgeGrid(el.EdgeGrid):
     def champ(self):
         force = np.zeros_like(self.lames[2, :])
         damp = lambda t: 0.01 #* np.exp(np.cos(t / 6.) / 3.**2)
-        XF = lambda t: location[0]
-        ZF = lambda t: location[2] + 3.5 * np.sin(2*np.pi*(self.t)/duration)
-        xf = lambda t: XF(t)/self.total_width + .5
-        zf = lambda t: ZF(t)/self.total_width + .5
+        xf = lambda t: location[0]
+        zf = lambda t: location[2] + 3.5 * np.sin(2*np.pi*(self.t)/duration)
         
         desired_angle = np.pi/2 + np.arctan2(self.lames[1, :]-zf(self.t), self.lames[0, :]-xf(self.t))
         self.lames[2, :] = np.mod(self.lames[2, :]-np.pi/2, np.pi) + np.pi/2
