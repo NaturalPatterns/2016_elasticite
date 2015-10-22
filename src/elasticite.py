@@ -38,7 +38,7 @@ def get_default_args(func):
     args, varargs, keywords, defaults = inspect.getargspec(func)
     return dict(zip(args[-len(defaults):], defaults))
 
-from  multiprocessing import Process
+# from  multiprocessing import Process
 
 class EdgeGrid():
     def __init__(self,

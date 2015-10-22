@@ -3,7 +3,7 @@
 
 """
 
-Sur une ligne de lames, on fait tourner les lames avec un mouvement relativement élastique mais exogene (prédeterminé, pas émergent)
+Sur une ligne de lames, on fait tourner les lames avec un mouvement relativement élastique mais exogene (prédéterminé, pas émergent)
 
 """
 
