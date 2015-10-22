@@ -42,11 +42,12 @@ def get_default_args(func):
 
 class EdgeGrid():
     def __init__(self,
-                 N_lame=8*72,
+                 N_lame = 8*72,
                  N_lame_X = None,
                  figsize = 13,
                  line_width = 4.,
                  grid_type = 'hex',
+		 structure = True,
                  verb = False,
                  mode = 'both',
                  ):
@@ -77,7 +78,9 @@ class EdgeGrid():
         self.grid_type = grid_type
         self.grid(N_lame=N_lame, N_lame_X=N_lame_X)
         self.lames[2, :] = np.pi*np.random.rand(self.N_lame)
-        
+        self.structure = structure
+        #if self.structure:
+        #    self.N_lame += 6
 
 
     def time(self, init=False):
@@ -102,15 +105,15 @@ class EdgeGrid():
             self.lames[1, :] += 1.5/self.N_lame_X # TODO : prove analytically
             self.lames[0, :] *= self.total_width
             self.lames[1, :] *= self.total_width
-            self.lame_length = .99/self.N_lame_X*self.total_width
-            self.lame_width = .03/self.N_lame_X*self.total_width
+            self.lame_length = .99/self.N_lame_X*self.total_width*np.ones(self.N_lame)
+            self.lame_width = .03/self.N_lame_X*self.total_width*np.ones(self.N_lame)
         elif self.grid_type=='line':
             self.N_lame_X = self.N_lame
             self.lames = np.zeros((4, self.N_lame))
             self.lames[0, :] = np.linspace(-self.total_width/2, self.total_width/2, self.N_lame, endpoint=True)
             self.lames[1, :] = self.total_width/2
-            self.lame_length = .12 # en mètres
-            self.lame_width = .042 # en mètres
+            self.lame_length = .12*np.ones(self.N_lame) # en mètres
+            self.lame_width = .042*np.ones(self.N_lame) # en mètres
 
         self.lames_minmax = np.array([self.lames[0, :].min(), self.lames[0, :].max(), self.lames[1, :].min(), self.lames[1, :].max()])
         #print(self.lames_minmax)
@@ -118,6 +121,13 @@ class EdgeGrid():
         #print(self.lame_length)
         #self.lines = self.set_lines()
 
+        #if self.structure:
+        #    self.N_lame += 6
+
+    def structure(self, position=[0., 3.5], longueur=3, angles=[15., 65., 102.]):
+        
+        
+        return "toto"
 
     def theta_E(self, im, X_, Y_, w):
         try:
@@ -246,8 +256,9 @@ class EdgeGrid():
             objects = [background, me, light]
 
             for i_lame in range(self.N_lame):
-                objects.append(vapory.Box([-self.lame_length/2, 0, -self.lame_width/2], 
-                                          [self.lame_length/2, self.lame_height,  self.lame_width/2], 
+                print(i_lame, self.lame_length[i_lame], self.lame_width[i_lame])
+                objects.append(vapory.Box([-self.lame_length[i_lame]/2, 0, -self.lame_width[i_lame]/2], 
+                                          [self.lame_length[i_lame]/2, self.lame_height,  self.lame_width[i_lame]/2], 
                                            vapory.Pigment('color', [1, 1, 1]),
                                            vapory.Finish('phong', 0.8, 'reflection', reflection),
                                            'rotate', (0, -self.lames[2, i_lame]*180/np.pi, 0), #HACK?
