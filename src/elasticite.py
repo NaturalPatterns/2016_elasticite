@@ -129,21 +129,21 @@ class EdgeGrid():
 
         self.lames_minmax = np.array([self.lames[0, :].min(), self.lames[0, :].max(), self.lames[1, :].min(), self.lames[1, :].max()])
 
-    def do_structure(self, N=6, position=[0., 3.5], longueur=3., angles=[15., 65., 102.]):
+    def do_structure(self, N=6, position=[0., 3.5], longueur=3., angles=[-15., -65., -102.]):
         structure_ = np.zeros((3, N))
         cursor = np.array(position)
         cursor_old = cursor.copy()
+        print(cursor_old , cursor)
         for i, angle in enumerate(angles):
-            cursor[0] += longueur*np.cos(angle*np.pi/180) 
-            cursor[1] += longueur*np.sin(angle*np.pi/180) 
+            cursor[0] += longueur*np.cos(angle*np.pi/180.) 
+            cursor[1] += longueur*np.sin(angle*np.pi/180.) 
             print(cursor_old , cursor)
-            
             structure_[0, 3+i] = .5*(cursor[0]-cursor_old[0])
-            structure_[0, 2-i] = -.5*(cursor[0]-cursor_old[0])
+            #structure_[0, 2-i] = -.5*(cursor[0]-cursor_old[0])
             structure_[1, 3+i] = .5*(cursor[1]-cursor_old[1])
-            structure_[1, 2-i] = .5*(cursor[1]-cursor_old[1])
-            structure_[2, 3+i] = np.pi/2+angle*np.pi/180 
-            structure_[2, 2-i] = np.pi/2-angle*np.pi/180
+            #structure_[1, 2-i] = .5*(cursor[1]-cursor_old[1])
+            structure_[2, 3+i] = angle*np.pi/180. 
+            #structure_[2, 2-i] = np.pi/2-angle*np.pi/180
             cursor_old = cursor.copy()
 
         print(structure_)
@@ -151,10 +151,12 @@ class EdgeGrid():
 
     def add_structure(self, N=6, position=[0., 3.5+10.5], longueur=3., angles=[15., 65., 102.]):
         self.N_lame += N
+        print(self.lames[:3, :])
         self.lames = np.hstack((self.lames, np.zeros((4, N))))
         self.lames[:3, -N:] = self.do_structure()
         self.lame_length = np.hstack((self.lame_length, longueur*np.ones(N))) # en mètres
         self.lame_width = np.hstack((self.lame_width, .042*np.ones(N))) # en mètres
+        print(self.lames[:3, :])
         
     def theta_E(self, im, X_, Y_, w):
         try:
