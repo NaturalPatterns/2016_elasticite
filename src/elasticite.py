@@ -80,7 +80,7 @@ class EdgeGrid():
         self.line_width = line_width
         self.grid_type = grid_type
         self.grid(N_lame=N_lame, N_lame_X=N_lame_X)
-        self.lames[2, :] = np.pi*np.random.rand(self.N_lame)
+        # self.lames[2, :] = np.pi*np.random.rand(self.N_lame)
 
     def time(self, init=False):
         if init: return time.time()
@@ -133,14 +133,14 @@ class EdgeGrid():
         self.lames_minmax = np.array([self.lames[0, :].min(), self.lames[0, :].max(), self.lames[1, :].min(), self.lames[1, :].max()])
 
     def do_structure(self):
-        structure_ = np.zeros((3, N))
+        structure_ = np.zeros((3, self.struct_N))
         chain = np.zeros((2, 4))
-        chain[:, 0] = np.array(position).T
-        for i, angle in enumerate(angles):
-            chain[0, i+1] = chain[0, i] + longueur*np.cos(angle*np.pi/180.) 
-            chain[1, i+1] = chain[1, i] + longueur*np.sin(angle*np.pi/180.) 
-            structure_[2, 3+i] = np.pi/2+angle*np.pi/180. 
-            structure_[2, 2-i] = np.pi/2+angle*np.pi/180
+        chain[:, 0] = np.array(self.struct_position).T
+        for i, angle in enumerate(self.struct_angles):
+            chain[0, i+1] = chain[0, i] + self.struct_longueur*np.cos(angle*np.pi/180.) 
+            chain[1, i+1] = chain[1, i] + self.struct_longueur*np.sin(angle*np.pi/180.) 
+            structure_[2, 3+i] = +angle*np.pi/180. 
+            structure_[2, 2-i] = -angle*np.pi/180
         structure_[0, 3:] = .5*(chain[0, 1:]+chain[0, :-1])
         structure_[0, :3] = -.5*(chain[0, 1:]+chain[0, :-1])
         structure_[1, 3:] = .5*(chain[1, 1:]+chain[1, :-1])
@@ -149,12 +149,12 @@ class EdgeGrid():
 
     def add_structure(self):
         self.N_lame += self.struct_N
-        #print(self.lames[:3, :])
+        print(self.lames[:3, -6:])
         self.lames = np.hstack((self.lames, np.zeros((4, self.struct_N))))
         self.lames[:3, -self.struct_N:] = self.do_structure()
-        self.lame_length = np.hstack((self.lame_length, longueur*np.ones(self.struct_N))) # en mètres
+        self.lame_length = np.hstack((self.lame_length, self.struct_longueur*np.ones(self.struct_N))) # en mètres
         self.lame_width = np.hstack((self.lame_width, .042*np.ones(self.struct_N))) # en mètres
-        #print(self.lames[:3, :])
+        print(self.lames[:3, -6:])
         
     def theta_E(self, im, X_, Y_, w):
         try:
