@@ -140,7 +140,7 @@ class EdgeGrid():
             chain[0, i+1] = chain[0, i] + self.struct_longueur*np.cos(angle*np.pi/180.) 
             chain[1, i+1] = chain[1, i] + self.struct_longueur*np.sin(angle*np.pi/180.) 
             structure_[2, 3+i] = +angle*np.pi/180. 
-            structure_[2, 2-i] = -angle*np.pi/180
+            structure_[2, 2-i] = np.pi-angle*np.pi/180
         structure_[0, 3:] = .5*(chain[0, 1:]+chain[0, :-1])
         structure_[0, :3] = -.5*(chain[0, 1:]+chain[0, :-1])
         structure_[1, 3:] = .5*(chain[1, 1:]+chain[1, :-1])
