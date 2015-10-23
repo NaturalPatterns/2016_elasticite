@@ -68,8 +68,8 @@ class EdgeGrid():
 
         # taille installation
         self.total_width = 8 # en mètres        
-        self.lame_width = 5 # en mètres        
-        self.lame_height = 3 # en mètres
+        self.lames_width = 5 # en mètres        
+        self.lames_height = 3 # en mètres
         self.background_depth = 100 # taille du 104 en profondeur
         self.f = .1
 
@@ -120,7 +120,7 @@ class EdgeGrid():
         elif self.grid_type=='line':
             self.N_lame_X = self.N_lame
             self.lames = np.zeros((4, self.N_lame))
-            self.lames[0, :] = np.linspace(-self.total_width/2, self.total_width/2, self.N_lame, endpoint=True)
+            self.lames[0, :] = np.linspace(-self.lames_width/2, self.lames_width/2, self.N_lame, endpoint=True)
             #self.lames[1, :] = self.total_width/2
             self.lame_length = .12*np.ones(self.N_lame) # en mètres
             self.lame_width = .042*np.ones(self.N_lame) # en mètres
@@ -285,7 +285,7 @@ class EdgeGrid():
             for i_lame in range(self.N_lame):
                 print(i_lame, self.lame_length[i_lame], self.lame_width[i_lame])
                 objects.append(vapory.Box([-self.lame_length[i_lame]/2, 0, -self.lame_width[i_lame]/2], 
-                                          [self.lame_length[i_lame]/2, self.lame_height,  self.lame_width[i_lame]/2], 
+                                          [self.lame_length[i_lame]/2, self.lames_height,  self.lame_width[i_lame]/2], 
                                            vapory.Pigment('color', [1, 1, 1]),
                                            vapory.Finish('phong', 0.8, 'reflection', reflection),
                                            'rotate', (0, -self.lames[2, i_lame]*180/np.pi, 0), #HACK?
@@ -503,11 +503,11 @@ class Window(pyglet.window.Window):
                                      ('v2f', coords.T.ravel().tolist()))
         #pyglet.graphics.draw(4*self.e.N_lame, gl.GL_QUADS, ('v2f', coords.T.ravel().tolist()))
         # carré
-        if self.DEBUG:
-            coords = np.array([[0., self.e.total_width, self.e.total_width, 0.], [0., 0., self.e.total_width, self.e.total_width]])
+        if self.e.DEBUG:
+            coords = np.array([[-.5*self.e.total_width, .5*self.e.total_width, .5*self.e.total_width, -.5*self.e.total_width], [-.5*self.e.total_width, -.5*self.e.total_width, .5*self.e.total_width, .5*self.e.total_width]])
             pyglet.graphics.draw(4, gl.GL_LINE_LOOP, ('v2f', coords.T.ravel().tolist()))
         # centres des lames
-        if self.DEBUG:
+        if self.e.DEBUG:
             gl.glLineWidth (1.)
             gl.glColor3f(0., 0., 0.)
             pyglet.graphics.draw(self.e.N_lame, gl.GL_POINTS, ('v2f', self.e.lames[:2,:].T.ravel().tolist()))
