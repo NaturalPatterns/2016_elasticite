@@ -6,8 +6,6 @@ import numpy as np
 import time
 import vapory
 
-DEBUG = False
-
 #import matplotlib
 #matplotlib.use("Agg") # agg-backend, so we can create figures without x-server (no PDF, just PNG etc.)
 #import matplotlib.pyplot as plt
@@ -59,6 +57,7 @@ class EdgeGrid():
         self.stream =  (mode=='stream') or (mode=='display')
         #if mode=='display': self.stream = True
         self.serial =  (mode=='serial') # converting a stream to the serial port to control the arduino
+        self.structure = structure
 
         self.port = "5556"
         # moteur:
@@ -68,7 +67,8 @@ class EdgeGrid():
         self.n_pas = 200. * 32. * 40 / 14
 
         # taille installation
-        self.total_width = 5 # en mètres        
+        self.total_width = 8 # en mètres        
+        self.lame_width = 5 # en mètres        
         self.lame_height = 3 # en mètres
         self.background_depth = 100 # taille du 104 en profondeur
         self.f = .1
@@ -78,16 +78,26 @@ class EdgeGrid():
         self.grid_type = grid_type
         self.grid(N_lame=N_lame, N_lame_X=N_lame_X)
         self.lames[2, :] = np.pi*np.random.rand(self.N_lame)
-        self.structure = structure
-        #if self.structure:
-        #    self.N_lame += 6
-
 
     def time(self, init=False):
         if init: return time.time()
         else: return time.time() - self.t0
         
     def grid(self, N_lame, N_lame_X):
+        """
+	The coordinates of the screen are centered on the (0, 0) point and axis are the classical convention:
+
+         y
+         ^
+         |
+         +---> x
+
+         angles are from the horizontal, then in trigonometric order (anticlockwise)
+
+         """
+
+        self.DEBUG = False
+        self.DEBUG = True
 
         self.N_lame = N_lame
         #if N_lame_X is None:
@@ -111,24 +121,41 @@ class EdgeGrid():
             self.N_lame_X = self.N_lame
             self.lames = np.zeros((4, self.N_lame))
             self.lames[0, :] = np.linspace(-self.total_width/2, self.total_width/2, self.N_lame, endpoint=True)
-            self.lames[1, :] = self.total_width/2
+            #self.lames[1, :] = self.total_width/2
             self.lame_length = .12*np.ones(self.N_lame) # en mètres
             self.lame_width = .042*np.ones(self.N_lame) # en mètres
 
+        if self.structure: self.add_structure()
+
         self.lames_minmax = np.array([self.lames[0, :].min(), self.lames[0, :].max(), self.lames[1, :].min(), self.lames[1, :].max()])
-        #print(self.lames_minmax)
 
-        #print(self.lame_length)
-        #self.lines = self.set_lines()
+    def do_structure(self, N=6, position=[0., 3.5], longueur=3., angles=[15., 65., 102.]):
+        structure_ = np.zeros((3, N))
+        cursor = np.array(position)
+        cursor_old = cursor.copy()
+        for i, angle in enumerate(angles):
+            cursor[0] += longueur*np.cos(angle*np.pi/180) 
+            cursor[1] += longueur*np.sin(angle*np.pi/180) 
+            print(cursor_old , cursor)
+            
+            structure_[0, 3+i] = .5*(cursor[0]-cursor_old[0])
+            structure_[0, 2-i] = -.5*(cursor[0]-cursor_old[0])
+            structure_[1, 3+i] = .5*(cursor[1]-cursor_old[1])
+            structure_[1, 2-i] = .5*(cursor[1]-cursor_old[1])
+            structure_[2, 3+i] = np.pi/2+angle*np.pi/180 
+            structure_[2, 2-i] = np.pi/2-angle*np.pi/180
+            cursor_old = cursor.copy()
 
-        #if self.structure:
-        #    self.N_lame += 6
+        print(structure_)
+        return structure_
 
-    def structure(self, position=[0., 3.5], longueur=3, angles=[15., 65., 102.]):
+    def add_structure(self, N=6, position=[0., 3.5+10.5], longueur=3., angles=[15., 65., 102.]):
+        self.N_lame += N
+        self.lames = np.hstack((self.lames, np.zeros((4, N))))
+        self.lames[:3, -N:] = self.do_structure()
+        self.lame_length = np.hstack((self.lame_length, longueur*np.ones(N))) # en mètres
+        self.lame_width = np.hstack((self.lame_width, .042*np.ones(N))) # en mètres
         
-        
-        return "toto"
-
     def theta_E(self, im, X_, Y_, w):
         try:
             assert(self.slip.N_X==im.shape[1])
@@ -453,13 +480,13 @@ class Window(pyglet.window.Window):
 #                             Specify the coordinates for the bottom and top horizontal clipping planes.
 #                         Description
 #         gl.gluOrtho2D(-(self.W-1)/2*self.e.total_width, (self.W+1)/2*self.e.total_width, -self.e.total_width/2, self.e.total_width/2, 0, 0, 1);
-        gl.gluOrtho2D(-self.W/2*self.e.total_width, self.W/2*self.e.total_width, 0, self.e.total_width, 0, 0, 1);
+        gl.gluOrtho2D(-self.W/2*self.e.total_width, self.W/2*self.e.total_width, -self.e.total_width/2, self.e.total_width/2, 0, 0, 1);
         gl.glMatrixMode(gl.GL_MODELVIEW);
         gl.glLoadIdentity();
 
         #gl.glLineWidth () #p['line_width'])
         gl.glEnable (gl.GL_BLEND)
-        #gl.glHint(gl.GL_LINE_SMOOTH_HINT, gl.GL_NICEST)
+        gl.glHint(gl.GL_LINE_SMOOTH_HINT, gl.GL_NICEST)
         gl.glColor3f(0., 0., 0.)
         dX, dY = np.cos(Theta)/2., np.sin(Theta)/2.
         # coords = np.vstack((X-dX*self.e.lame_length, Y-dY*self.e.lame_length, X+dX*self.e.lame_length, Y+dY*self.e.lame_length))
@@ -476,12 +503,18 @@ class Window(pyglet.window.Window):
                                      ('v2f', coords.T.ravel().tolist()))
         #pyglet.graphics.draw(4*self.e.N_lame, gl.GL_QUADS, ('v2f', coords.T.ravel().tolist()))
         # carré
-        if DEBUG:
+        if self.DEBUG:
             coords = np.array([[0., self.e.total_width, self.e.total_width, 0.], [0., 0., self.e.total_width, self.e.total_width]])
             pyglet.graphics.draw(4, gl.GL_LINE_LOOP, ('v2f', coords.T.ravel().tolist()))
         # centres des lames
-        if DEBUG:
+        if self.DEBUG:
+            gl.glLineWidth (1.)
+            gl.glColor3f(0., 0., 0.)
             pyglet.graphics.draw(self.e.N_lame, gl.GL_POINTS, ('v2f', self.e.lames[:2,:].T.ravel().tolist()))
+            gl.glColor3f(1., 0., 0.)
+            pyglet.graphics.draw(2, gl.GL_LINES, ('v2f', [0., 0., 1., 0.]))
+            gl.glColor3f(0., 1., 0.)
+            pyglet.graphics.draw(2, gl.GL_LINES, ('v2f', [0., 0., 0., 1.]))
 #
 def server(e):
     import zmq

@@ -15,9 +15,11 @@ location = el.get_default_args(el.EdgeGrid.render)['location']
 
 class EdgeGrid(el.EdgeGrid):
     def update(self):        
+        if self.structure: N_lame = self.N_lame-6
+        else: N_lame = self.N_lame
         xf = location[0] #+ .2 * np.sin(2*np.pi*(self.t)/duration)
         zf = location[2] + 1.8 * np.sin(2*np.pi*(self.t)/duration)
-        self.lames[2, :] = np.mod(np.pi/2 + np.arctan2(self.lames[1, :]-zf, self.lames[0, :]-xf), np.pi)
+        self.lames[2, :N_lame] = np.pi/2 + 0 * np.mod(np.pi/2 + np.arctan2(self.lames[1, :N_lame]-zf, self.lames[0, :N_lame]-xf), np.pi)
 
 if __name__ == "__main__":
     import sys
