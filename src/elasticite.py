@@ -149,12 +149,10 @@ class EdgeGrid():
 
     def add_structure(self):
         self.N_lame += self.struct_N
-        print(self.lames[:3, -6:])
         self.lames = np.hstack((self.lames, np.zeros((4, self.struct_N))))
         self.lames[:3, -self.struct_N:] = self.do_structure()
         self.lame_length = np.hstack((self.lame_length, self.struct_longueur*np.ones(self.struct_N))) # en mètres
         self.lame_width = np.hstack((self.lame_width, .042*np.ones(self.struct_N))) # en mètres
-        print(self.lames[:3, -6:])
         
     def theta_E(self, im, X_, Y_, w):
         try:
@@ -242,7 +240,9 @@ class EdgeGrid():
         return np.arctan2(dy, dx) - np.pi/2 - theta
 
     def champ(self):
-        force = np.zeros_like(self.lames[2, :])
+        if self.structure: N_lame = self.N_lame-self.struct_N
+        else: N_lame = self.N_lame
+        force = np.zeros_like(self.lames[2, :N_lame])
         noise = lambda t: 0.2 * np.exp((np.cos(2*np.pi*(t-0.) / 6.)-1.)/ 1.5**2)
         damp = lambda t: 0.01 #* np.exp(np.cos(t / 6.) / 3.**2)
         colin_t = lambda t: -.1*np.exp((np.cos(2*np.pi*(t-2.) / 6.)-1.)/ .3**2)
@@ -253,16 +253,18 @@ class EdgeGrid():
         force += colin_t(self.t) * np.sum(np.sin(2*(self.angle_relatif()))*colin_d(self.distance()), axis=1)
         force += cocir_t(self.t) * np.sum(np.sin(2*(self.angle_cocir()))*cocir_d(self.distance()), axis=1)
         force += noise(self.t)*np.pi*np.random.randn(self.N_lame)
-        force -= damp(self.t) * self.lames[3, :]/self.dt
+        force -= damp(self.t) * self.lames[3, :N_lame]/self.dt
         return 42.*force
 
     def update(self):
-        self.lames[2, :] += self.lames[3, :]*self.dt/2
-        self.lames[3, :] += self.champ() * self.dt
-        self.lames[2, :] += self.lames[3, :]*self.dt/2
+        if self.structure: N_lame = self.N_lame-self.struct_N
+        else: N_lame = self.N_lame
+        self.lames[2, :N_lame] += self.lames[3, :N_lame]*self.dt/2
+        self.lames[3, :N_lame] += self.champ() * self.dt
+        self.lames[2, :N_lame] += self.lames[3, :N_lame]*self.dt/2
         
-    def render(self, fps=10, W=1000, H=618, location=[0, 1.75, -2], head_size=.4, light_intensity=1.2, reflection=1., 
-               look_at=[0, 1.5, 0], antialiasing=0.001, duration=5, fname='/tmp/temp.webm'):
+    def render(self, fps=10, W=1000, H=618, location=[0, 1.75, -5], head_size=.4, light_intensity=1.2, reflection=1., 
+               look_at=[0, 1.5, 0], fov=75, antialiasing=0.001, duration=5, fname='/tmp/temp.webm'):
 
         def scene(t):
             """ 
@@ -283,7 +285,7 @@ class EdgeGrid():
             objects = [background, me, light]
 
             for i_lame in range(self.N_lame):
-                print(i_lame, self.lame_length[i_lame], self.lame_width[i_lame])
+                #print(i_lame, self.lame_length[i_lame], self.lame_width[i_lame])
                 objects.append(vapory.Box([-self.lame_length[i_lame]/2, 0, -self.lame_width[i_lame]/2], 
                                           [self.lame_length[i_lame]/2, self.lames_height,  self.lame_width[i_lame]/2], 
                                            vapory.Pigment('color', [1, 1, 1]),
@@ -294,7 +296,7 @@ class EdgeGrid():
                               )
 
             objects.append(light)
-            return vapory.Scene( vapory.Camera("location", location, "look_at", look_at),
+            return vapory.Scene( vapory.Camera('angle', fov, "location", location, "look_at", look_at),
                            objects = objects,
                            included=["glass.inc"] )
         import moviepy.editor as mpy
