@@ -56,12 +56,13 @@ class EdgeGrid():
         self.stream =  (mode=='stream') or (mode=='display')
         #if mode=='display': self.stream = True
         self.serial =  (mode=='serial') # converting a stream to the serial port to control the arduino
+        if self.serial: self.verb=True
         self.structure = structure
         self.screenshot = True # saves a screenshot after the rendering
 
         self.port = "5556"
         # moteur:
-        self.serial_port, self.baud_rate = '/dev/ttyACM0', 230400
+        self.serial_port, self.baud_rate = '/dev/ttyUSB0', 115200
         # 1.8 deg par pas (=200 pas par tour) x 32 divisions de pas
         # demultiplication : pignon1= 14 dents, pignon2 = 40 dents
         self.n_pas = 200. * 32. * 40 / 14
@@ -570,14 +571,13 @@ def server(e):
         e.t = e.time()
         send_array(socket, e.lames[2, :])
 
-def serial(e):
+def serial(e, desired_fps):
     import serial
-    alphabet = 'ABCDEFGHIJKLMNOPQRSTUVwXYZabcdefghijklmnopqrstuvwxyz'
+    alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
     def convert(increment):
-        #msg  = ''
-        #for i in len(increment):
-        #    msg += alphabet(i) + str(increment[i])  + ';' 
-        msg = sum([alphabet(i) + str(increment[i])  + ';' for i in len(increment)]) 
+        msg  = ''
+        for i, increment_ in enumerate(increment):
+            msg += alphabet[i] + str(increment_)  + ';' 
         return msg  
     
     with serial.Serial(e.serial_port, e.baud_rate) as ser:
@@ -592,6 +592,8 @@ def serial(e):
             nbpas_old = nbpas_old + dnbpas
             if e.verb: print('@', e.t, convert(dnbpas), '-fps=', 1./e.dt)
             ser.write(convert(dnbpas))
+            dt = e.time() - e.t
+            if 1./desired_fps - dt>0.: time.sleep(1./desired_fps - dt)
 
 def client(e):
     if e.stream:
