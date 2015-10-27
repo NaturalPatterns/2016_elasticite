@@ -67,6 +67,7 @@ class EdgeGrid():
         # demultiplication : pignon1= 14 dents, pignon2 = 40 dents
         self.n_pas = 200. * 32. * 40 / 14
 
+        
         # taille installation
         self.total_width = 8 # en mètres        
         self.lames_width = 5 # en mètres        
@@ -83,6 +84,9 @@ class EdgeGrid():
         self.grid(N_lame=N_lame, N_lame_X=N_lame_X)
         # self.lames[2, :] = np.pi*np.random.rand(self.N_lame)
 
+        self.N_particles = self.struct_N * 2**8
+        
+        
     def time(self, init=False):
         if init: return time.time()
         else: return time.time() - self.t0
@@ -155,6 +159,17 @@ class EdgeGrid():
         self.lame_length = np.hstack((self.lame_length, self.struct_longueur*np.ones(self.struct_N))) # en mètres
         self.lame_width = np.hstack((self.lame_width, .042*np.ones(self.struct_N))) # en mètres
         
+        
+    def sample_structure(self):
+        struct = self.lames[:3, -self.struct_N:]
+        self.particles = np.ones((3, self.N_particles))
+        N_particles_ = self.N_particles/self.struct_N
+        for i, vec in enumerate(struct.T.tolist()):
+            x0, x1 = vec[0] - .5*self.struct_longueur*np.cos(vec[2]), vec[0] + .5*self.struct_longueur*np.cos(vec[2])
+            y0, y1 = vec[1] - .5*self.struct_longueur*np.sin(vec[2]), vec[1] + .5*self.struct_longueur*np.sin(vec[2])
+            self.particles[0, i*N_particles_:(i+1)*N_particles_] = np.linspace(x0, x1, N_particles_)
+            self.particles[1, i*N_particles_:(i+1)*N_particles_] = np.linspace(y0, y1, N_particles_)
+
     def theta_E(self, im, X_, Y_, w):
         try:
             assert(self.slip.N_X==im.shape[1])
