@@ -45,7 +45,7 @@ class EdgeGrid():
                  figsize = 13,
                  line_width = 4.,
                  grid_type = 'hex',
-		 structure = True,
+                 structure = True,
                  verb = False,
                  mode = 'both',
                  ):
@@ -58,6 +58,7 @@ class EdgeGrid():
         #if mode=='display': self.stream = True
         self.serial =  (mode=='serial') # converting a stream to the serial port to control the arduino
         self.structure = structure
+        self.screenshot = True # saves a screenshot after the rendering
 
         self.port = "5556"
         # moteur:
@@ -88,7 +89,7 @@ class EdgeGrid():
         
     def grid(self, N_lame, N_lame_X):
         """
-	The coordinates of the screen are centered on the (0, 0) point and axis are the classical convention:
+        The coordinates of the screen are centered on the (0, 0) point and axis are the classical convention:
 
          y
          ^
@@ -584,6 +585,7 @@ def client(e):
     pyglet.gl.glClearColor(1., 1., 1., 1.)
     pyglet.clock.schedule(callback)
     pyglet.app.run()
+    if e.screenshot: pyglet.image.get_buffer_manager().get_color_buffer().save('screenshot.png')
 
 def main(e):
 #     print(e.display, e.stream)
