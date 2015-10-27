@@ -571,7 +571,7 @@ def server(e):
         e.t = e.time()
         send_array(socket, e.lames[2, :])
 
-def serial(e, desired_fps):
+def serial(e, desired_fps=75.):
     import serial
     alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
     def convert(increment):
@@ -581,13 +581,15 @@ def serial(e, desired_fps):
         return msg  
     
     with serial.Serial(e.serial_port, e.baud_rate) as ser:
+        if e.structure: N_lame = e.N_lame-self.struct_N
+        else: N_lame = e.N_lame
         if e.verb: print("Running serial on port: ", e.serial_port)
-        nbpas_old = np.zeros_like(e.lames[2, :], dtype=np.int)
+        nbpas_old = np.zeros_like(e.lames[2, :N_lame], dtype=np.int)
         while True:
             e.dt = e.time() - e.t
             e.update()
             e.t = e.time()
-            nbpas = [int(theta*e.n_pas) for theta in e.lames[2, :]]
+            nbpas = [int(theta*e.n_pas) for theta in e.lames[2, :N_lame]]
             dnbpas =  nbpas - nbpas_old
             nbpas_old = nbpas_old + dnbpas
             if e.verb: print('@', e.t, convert(dnbpas), '-fps=', 1./e.dt)
