@@ -85,7 +85,7 @@ class EdgeGrid():
         # self.lames[2, :] = np.pi*np.random.rand(self.N_lame)
 
         self.N_particles = self.struct_N * 2**8
-        
+        if structure: self.sample_structure()
         
     def time(self, init=False):
         if init: return time.time()
