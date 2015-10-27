@@ -428,111 +428,111 @@ try:
     import pyglet.gl as gl
     smoothConfig = gl.Config(sample_buffers=1, samples=4,
                              depth_size=16, double_buffer=True)
+
+    class Window(pyglet.window.Window):
+        """
+        Viewing particles using pyglet.app
+
+            Interaction keyboard:
+            - TAB pour passer/sortir du fulscreen
+            - espace : passage en first-person perspective
+
+            Les interactions visuo - sonores sont simulées ici par des switches lançant des phases:
+            - F : faster
+            - S : slower
+
+        """
+        def __init__(self, e, *args, **kwargs):
+            #super(Window, self).__init__(*args, **kwargs)
+            super(Window, self).__init__(config=smoothConfig, *args, **kwargs)
+            self.e = e
+
+        #@self.event
+        def on_key_press(self, symbol, modifiers):
+            if symbol == pyglet.window.key.TAB:
+                if self.fullscreen:
+                    self.set_fullscreen(False)
+                    self.set_location(screen.width/3, screen.height/3)
+                else:
+                    self.set_fullscreen(True)
+            elif symbol == pyglet.window.key.ESCAPE:
+                pyglet.app.exit()
+            elif symbol == pyglet.window.key.S:
+                self.e.f /= 1.05
+            elif symbol == pyglet.window.key.F:
+                self.e.f *= 1.05
+
+    #
+        #@self.win.event
+        def on_resize(self, width, height):
+            print('The window was resized to %dx%d' % (width, height))
+    #
+        #@self.win.event
+        def on_draw(self):
+            if self.e.stream:
+                if self.e.verb: print("Sending request")
+                self.e.socket.send (b"Hello")
+                #message = self.e.socket.recv()
+                #print "Received reply ", message
+                #return
+
+                X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], recv_array(self.e.socket)
+                if self.e.verb: print("Received reply ", Theta.shape)
+            else:
+                self.e.dt = self.e.time() - self.e.t
+                self.e.update()
+                self.e.t = self.e.time()
+                X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], self.e.lames[2, :]
+
+            self.W = float(self.width)/self.height
+            self.clear()
+            gl.glMatrixMode(gl.GL_PROJECTION);
+            gl.glLoadIdentity()
+    #                     gluOrtho2D sets up a two-dimensional orthographic viewing region.  
+    #          Parameters left, right
+    #                             Specify the coordinates for the left and right vertical clipping planes.
+    #                         bottom, top
+    #                             Specify the coordinates for the bottom and top horizontal clipping planes.
+    #                         Description
+    #         gl.gluOrtho2D(-(self.W-1)/2*self.e.total_width, (self.W+1)/2*self.e.total_width, -self.e.total_width/2, self.e.total_width/2, 0, 0, 1);
+            gl.gluOrtho2D(-self.W/2*self.e.total_width, self.W/2*self.e.total_width, -self.e.total_width/2, self.e.total_width/2, 0, 0, 1);
+            gl.glMatrixMode(gl.GL_MODELVIEW);
+            gl.glLoadIdentity();
+
+            #gl.glLineWidth () #p['line_width'])
+            gl.glEnable (gl.GL_BLEND)
+            gl.glHint(gl.GL_LINE_SMOOTH_HINT, gl.GL_NICEST)
+            gl.glColor3f(0., 0., 0.)
+            dX, dY = np.cos(Theta)/2., np.sin(Theta)/2.
+            # coords = np.vstack((X-dX*self.e.lame_length, Y-dY*self.e.lame_length, X+dX*self.e.lame_length, Y+dY*self.e.lame_length))
+            coords = np.vstack((
+                                X-dX*self.e.lame_length+dY*self.e.lame_width, Y-dY*self.e.lame_length-dX*self.e.lame_width,
+                                X+dX*self.e.lame_length+dY*self.e.lame_width, Y+dY*self.e.lame_length-dX*self.e.lame_width,
+                                X-dX*self.e.lame_length-dY*self.e.lame_width, Y-dY*self.e.lame_length+dX*self.e.lame_width,
+                                X+dX*self.e.lame_length-dY*self.e.lame_width, Y+dY*self.e.lame_length+dX*self.e.lame_width,
+                                ))
+            #pyglet.graphics.draw(2*self.e.N_lame, gl.GL_LINES, ('v2f', coords.T.ravel().tolist()))
+            indices = np.array([0, 1, 2, 1, 2, 3])[:, np.newaxis] + 4*np.arange(self.e.N_lame)
+            pyglet.graphics.draw_indexed(4*self.e.N_lame, pyglet.gl.GL_TRIANGLES,
+                                         indices.T.ravel().tolist(),
+                                         ('v2f', coords.T.ravel().tolist()))
+            #pyglet.graphics.draw(4*self.e.N_lame, gl.GL_QUADS, ('v2f', coords.T.ravel().tolist()))
+            # carré
+            if self.e.DEBUG:
+                coords = np.array([[-.5*self.e.total_width, .5*self.e.total_width, .5*self.e.total_width, -.5*self.e.total_width], [-.5*self.e.total_width, -.5*self.e.total_width, .5*self.e.total_width, .5*self.e.total_width]])
+                pyglet.graphics.draw(4, gl.GL_LINE_LOOP, ('v2f', coords.T.ravel().tolist()))
+            # centres des lames
+            if self.e.DEBUG:
+                gl.glLineWidth (1.)
+                gl.glColor3f(0., 0., 0.)
+                pyglet.graphics.draw(self.e.N_lame, gl.GL_POINTS, ('v2f', self.e.lames[:2,:].T.ravel().tolist()))
+                gl.glColor3f(1., 0., 0.)
+                pyglet.graphics.draw(2, gl.GL_LINES, ('v2f', [0., 0., 1., 0.]))
+                gl.glColor3f(0., 1., 0.)
+                pyglet.graphics.draw(2, gl.GL_LINES, ('v2f', [0., 0., 0., 1.]))
 except:
     print('Could not load pyglet')
 
-class Window(pyglet.window.Window):
-    """
-    Viewing particles using pyglet.app
-
-        Interaction keyboard:
-        - TAB pour passer/sortir du fulscreen
-        - espace : passage en first-person perspective
-
-        Les interactions visuo - sonores sont simulées ici par des switches lançant des phases:
-        - F : faster
-        - S : slower
-
-    """
-    def __init__(self, e, *args, **kwargs):
-        #super(Window, self).__init__(*args, **kwargs)
-        super(Window, self).__init__(config=smoothConfig, *args, **kwargs)
-        self.e = e
-
-    #@self.event
-    def on_key_press(self, symbol, modifiers):
-        if symbol == pyglet.window.key.TAB:
-            if self.fullscreen:
-                self.set_fullscreen(False)
-                self.set_location(screen.width/3, screen.height/3)
-            else:
-                self.set_fullscreen(True)
-        elif symbol == pyglet.window.key.ESCAPE:
-            pyglet.app.exit()
-        elif symbol == pyglet.window.key.S:
-            self.e.f /= 1.05
-        elif symbol == pyglet.window.key.F:
-            self.e.f *= 1.05
-
-#
-    #@self.win.event
-    def on_resize(self, width, height):
-        print('The window was resized to %dx%d' % (width, height))
-#
-    #@self.win.event
-    def on_draw(self):
-        if self.e.stream:
-            if self.e.verb: print("Sending request")
-            self.e.socket.send (b"Hello")
-            #message = self.e.socket.recv()
-            #print "Received reply ", message
-            #return
-
-            X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], recv_array(self.e.socket)
-            if self.e.verb: print("Received reply ", Theta.shape)
-        else:
-            self.e.dt = self.e.time() - self.e.t
-            self.e.update()
-            self.e.t = self.e.time()
-            X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], self.e.lames[2, :]
-
-        self.W = float(self.width)/self.height
-        self.clear()
-        gl.glMatrixMode(gl.GL_PROJECTION);
-        gl.glLoadIdentity()
-#                     gluOrtho2D sets up a two-dimensional orthographic viewing region.  
-#          Parameters left, right
-#                             Specify the coordinates for the left and right vertical clipping planes.
-#                         bottom, top
-#                             Specify the coordinates for the bottom and top horizontal clipping planes.
-#                         Description
-#         gl.gluOrtho2D(-(self.W-1)/2*self.e.total_width, (self.W+1)/2*self.e.total_width, -self.e.total_width/2, self.e.total_width/2, 0, 0, 1);
-        gl.gluOrtho2D(-self.W/2*self.e.total_width, self.W/2*self.e.total_width, -self.e.total_width/2, self.e.total_width/2, 0, 0, 1);
-        gl.glMatrixMode(gl.GL_MODELVIEW);
-        gl.glLoadIdentity();
-
-        #gl.glLineWidth () #p['line_width'])
-        gl.glEnable (gl.GL_BLEND)
-        gl.glHint(gl.GL_LINE_SMOOTH_HINT, gl.GL_NICEST)
-        gl.glColor3f(0., 0., 0.)
-        dX, dY = np.cos(Theta)/2., np.sin(Theta)/2.
-        # coords = np.vstack((X-dX*self.e.lame_length, Y-dY*self.e.lame_length, X+dX*self.e.lame_length, Y+dY*self.e.lame_length))
-        coords = np.vstack((
-                            X-dX*self.e.lame_length+dY*self.e.lame_width, Y-dY*self.e.lame_length-dX*self.e.lame_width,
-                            X+dX*self.e.lame_length+dY*self.e.lame_width, Y+dY*self.e.lame_length-dX*self.e.lame_width,
-                            X-dX*self.e.lame_length-dY*self.e.lame_width, Y-dY*self.e.lame_length+dX*self.e.lame_width,
-                            X+dX*self.e.lame_length-dY*self.e.lame_width, Y+dY*self.e.lame_length+dX*self.e.lame_width,
-                            ))
-        #pyglet.graphics.draw(2*self.e.N_lame, gl.GL_LINES, ('v2f', coords.T.ravel().tolist()))
-        indices = np.array([0, 1, 2, 1, 2, 3])[:, np.newaxis] + 4*np.arange(self.e.N_lame)
-        pyglet.graphics.draw_indexed(4*self.e.N_lame, pyglet.gl.GL_TRIANGLES,
-                                     indices.T.ravel().tolist(),
-                                     ('v2f', coords.T.ravel().tolist()))
-        #pyglet.graphics.draw(4*self.e.N_lame, gl.GL_QUADS, ('v2f', coords.T.ravel().tolist()))
-        # carré
-        if self.e.DEBUG:
-            coords = np.array([[-.5*self.e.total_width, .5*self.e.total_width, .5*self.e.total_width, -.5*self.e.total_width], [-.5*self.e.total_width, -.5*self.e.total_width, .5*self.e.total_width, .5*self.e.total_width]])
-            pyglet.graphics.draw(4, gl.GL_LINE_LOOP, ('v2f', coords.T.ravel().tolist()))
-        # centres des lames
-        if self.e.DEBUG:
-            gl.glLineWidth (1.)
-            gl.glColor3f(0., 0., 0.)
-            pyglet.graphics.draw(self.e.N_lame, gl.GL_POINTS, ('v2f', self.e.lames[:2,:].T.ravel().tolist()))
-            gl.glColor3f(1., 0., 0.)
-            pyglet.graphics.draw(2, gl.GL_LINES, ('v2f', [0., 0., 1., 0.]))
-            gl.glColor3f(0., 1., 0.)
-            pyglet.graphics.draw(2, gl.GL_LINES, ('v2f', [0., 0., 0., 1.]))
-#
 def server(e):
     import zmq
     context = zmq.Context()
