@@ -65,6 +65,7 @@ class EdgeGrid():
         # 1.8 deg par pas (=200 pas par tour) x 32 divisions de pas
         # demultiplication : pignon1= 14 dents, pignon2 = 40 dents
         self.n_pas = 200. * 32. * 40 / 14
+        # TODO : Vitesse Max moteur = 1 tour en 3,88
 
         
         # taille installation
@@ -328,7 +329,7 @@ class EdgeGrid():
         import matplotlib.pyplot as plt
         fig, ax = plt.subplots(1, 1, figsize=(self.figsize, self.figsize*H/W))
         self.dt = 1./fps
-        opts = dict(vmin=-1, vmax=1., linewidths=0, cmap=plt.cm.bone)
+        opts = dict(vmin=-1, vmax=1., linewidths=0, cmap=plt.cm.bone, alpha=.5)
         from moviepy.video.io.bindings import mplfig_to_npimage
         import moviepy.editor as mpy
         def make_frame_mpl(t):    
