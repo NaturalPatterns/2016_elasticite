@@ -4,7 +4,6 @@ from __future__ import division, print_function, absolute_import
 import os
 import numpy as np
 import time
-import vapory
 
 #import matplotlib
 #matplotlib.use("Agg") # agg-backend, so we can create figures without x-server (no PDF, just PNG etc.)
