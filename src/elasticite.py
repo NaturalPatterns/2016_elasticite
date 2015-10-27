@@ -61,7 +61,7 @@ class EdgeGrid():
 
         self.port = "5556"
         # moteur:
-        self.serial_port, self.baud_rate = '/dev/ttyUSB0', 115200
+        self.serial_port, self.baud_rate = '/dev/ttyACM0', 230400
         # 1.8 deg par pas (=200 pas par tour) x 32 divisions de pas
         # demultiplication : pignon1= 14 dents, pignon2 = 40 dents
         self.n_pas = 200. * 32. * 40 / 14
@@ -324,11 +324,11 @@ class EdgeGrid():
             clip.write_videofile(fname, fps=fps)
         return mpy.ipython_display(fname, fps=fps, loop=1, autoplay=1)
 
-    def animate(self, fps=10, W=1000, H=618, duration=5):
+    def animate(self, fps=25, W=1000, H=618, duration=5):
         import matplotlib.pyplot as plt
         fig, ax = plt.subplots(1, 1, figsize=(self.figsize, self.figsize*H/W))
         self.dt = 1./fps
-        opts = dict(vmin=0, vmax=1., linewidths=0, cmap=plt.cm.bone)
+        opts = dict(vmin=-1, vmax=1., linewidths=0, cmap=plt.cm.bone)
         from moviepy.video.io.bindings import mplfig_to_npimage
         import moviepy.editor as mpy
         def make_frame_mpl(t):    
@@ -342,8 +342,9 @@ class EdgeGrid():
             return mplfig_to_npimage(fig) # RGB image of the figure
 
         animation = mpy.VideoClip(make_frame_mpl, duration=duration)
-        return animation.ipython_display(fps=fps, loop=1, autoplay=1, width=W)
-
+        _ = animation.ipython_display(fps=fps, loop=1, autoplay=1, width=W)
+        plt.close('all')
+        return _
     #def show_edges(self, fig=None, a=None):
         #self.N_theta = 12
         #self.thetas = np.linspace(0, np.pi, self.N_theta)
@@ -573,11 +574,10 @@ def serial(e):
     import serial
     alphabet = 'ABCDEFGHIJKLMNOPQRSTUVwXYZabcdefghijklmnopqrstuvwxyz'
     def convert(increment):
-        msg  = ''
-        for i, increment_ in enumerate(increment):
-            #print(alphabet[i], increment_, str(increment_))
-            msg += alphabet[i] + str(increment_)  + ';' 
-        #msg = sum([alphabet(i) + str(increment[i])  + ';' for i in len(increment)]) 
+        #msg  = ''
+        #for i in len(increment):
+        #    msg += alphabet(i) + str(increment[i])  + ';' 
+        msg = sum([alphabet(i) + str(increment[i])  + ';' for i in len(increment)]) 
         return msg  
     
     with serial.Serial(e.serial_port, e.baud_rate) as ser:
@@ -590,7 +590,7 @@ def serial(e):
             nbpas = [int(theta*e.n_pas) for theta in e.lames[2, :]]
             dnbpas =  nbpas - nbpas_old
             nbpas_old = nbpas_old + dnbpas
-            if e.verb: print(e.t, convert(dnbpas))
+            if e.verb: print('@', e.t, convert(dnbpas), '-fps=', 1./e.dt)
             ser.write(convert(dnbpas))
 
 def client(e):
