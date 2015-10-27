@@ -327,27 +327,28 @@ class EdgeGrid():
             clip.write_videofile(fname, fps=fps)
         return mpy.ipython_display(fname, fps=fps, loop=1, autoplay=1)
 
-    def animate(self, fps=25, W=1000, H=618, duration=5):
+    def animate(self, fps=25, W=1000, H=618, duration=5, fname='/tmp/temp.webm'):
         import matplotlib.pyplot as plt
         fig, ax = plt.subplots(1, 1, figsize=(self.figsize, self.figsize*H/W))
         self.dt = 1./fps
         opts = dict(vmin=-1, vmax=1., linewidths=0, cmap=plt.cm.bone, alpha=.5)
         from moviepy.video.io.bindings import mplfig_to_npimage
         import moviepy.editor as mpy
-        def make_frame_mpl(t):    
-            ax.clear()
-            ax.axis('off')
-            ax.set_ylim([-self.total_width*H/W, self.total_width*H/W])
-            ax.set_xlim([-self.total_width, self.total_width])
-            self.t = t
-            self.update()
-            scat  = ax.scatter(self.particles[0,:], self.particles[1,:], c=self.particles[2,:], **opts)
-            return mplfig_to_npimage(fig) # RGB image of the figure
+        if not os.path.isfile(fname):
+            def make_frame_mpl(t):    
+                ax.clear()
+                ax.axis('off')
+                ax.set_ylim([-self.total_width*H/W, self.total_width*H/W])
+                ax.set_xlim([-self.total_width, self.total_width])
+                self.t = t
+                self.update()
+                scat  = ax.scatter(self.particles[0,:], self.particles[1,:], c=self.particles[2,:], **opts)
+                return mplfig_to_npimage(fig) # RGB image of the figure
 
-        animation = mpy.VideoClip(make_frame_mpl, duration=duration)
-        _ = animation.ipython_display(fps=fps, loop=1, autoplay=1, width=W)
-        plt.close('all')
-        return _
+            animation = mpy.VideoClip(make_frame_mpl, duration=duration)
+            animation.write_videofile(fname, fps=fps)
+            plt.close('all')
+        return mpy.ipython_display(fname, fps=fps, loop=1, autoplay=1, width=W)
     #def show_edges(self, fig=None, a=None):
         #self.N_theta = 12
         #self.thetas = np.linspace(0, np.pi, self.N_theta)
