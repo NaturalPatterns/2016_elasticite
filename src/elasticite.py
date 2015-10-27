@@ -57,6 +57,7 @@ class EdgeGrid():
         #if mode=='display': self.stream = True
         self.serial =  (mode=='serial') # converting a stream to the serial port to control the arduino
         if self.serial: self.verb=True
+        self.desired_fps=750.
         self.structure = structure
         self.screenshot = True # saves a screenshot after the rendering
 
@@ -571,7 +572,7 @@ def server(e):
         e.t = e.time()
         send_array(socket, e.lames[2, :])
 
-def serial(e, desired_fps=75.):
+def serial(e):
     import serial
     alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
     def convert(increment):
@@ -581,7 +582,7 @@ def serial(e, desired_fps=75.):
         return msg  
     
     with serial.Serial(e.serial_port, e.baud_rate) as ser:
-        if e.structure: N_lame = e.N_lame-self.struct_N
+        if e.structure: N_lame = e.N_lame-e.struct_N
         else: N_lame = e.N_lame
         if e.verb: print("Running serial on port: ", e.serial_port)
         nbpas_old = np.zeros_like(e.lames[2, :N_lame], dtype=np.int)
@@ -595,7 +596,7 @@ def serial(e, desired_fps=75.):
             if e.verb: print('@', e.t, convert(dnbpas), '-fps=', 1./e.dt)
             ser.write(convert(dnbpas))
             dt = e.time() - e.t
-            if 1./desired_fps - dt>0.: time.sleep(1./desired_fps - dt)
+            if 1./e.desired_fps - dt>0.: time.sleep(1./e.desired_fps - dt)
 
 def client(e):
     if e.stream:
