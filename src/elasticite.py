@@ -56,12 +56,14 @@ class EdgeGrid():
         self.stream =  (mode=='stream') or (mode=='display')
         #if mode=='display': self.stream = True
         self.serial =  (mode=='serial') # converting a stream to the serial port to control the arduino
+        if self.serial: self.verb=True
+        self.desired_fps=750.
         self.structure = structure
         self.screenshot = True # saves a screenshot after the rendering
 
         self.port = "5556"
         # moteur:
-        self.serial_port, self.baud_rate = '/dev/ttyACM0', 230400
+        self.serial_port, self.baud_rate = '/dev/ttyUSB0', 115200
         # 1.8 deg par pas (=200 pas par tour) x 32 divisions de pas
         # demultiplication : pignon1= 14 dents, pignon2 = 40 dents
         self.n_pas = 200. * 32. * 40 / 14
@@ -573,26 +575,29 @@ def server(e):
 
 def serial(e):
     import serial
-    alphabet = 'ABCDEFGHIJKLMNOPQRSTUVwXYZabcdefghijklmnopqrstuvwxyz'
+    alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
     def convert(increment):
-        #msg  = ''
-        #for i in len(increment):
-        #    msg += alphabet(i) + str(increment[i])  + ';' 
-        msg = sum([alphabet(i) + str(increment[i])  + ';' for i in len(increment)]) 
+        msg  = ''
+        for i, increment_ in enumerate(increment):
+            msg += alphabet[i] + str(increment_)  + ';' 
         return msg  
     
     with serial.Serial(e.serial_port, e.baud_rate) as ser:
+        if e.structure: N_lame = e.N_lame-e.struct_N
+        else: N_lame = e.N_lame
         if e.verb: print("Running serial on port: ", e.serial_port)
-        nbpas_old = np.zeros_like(e.lames[2, :], dtype=np.int)
+        nbpas_old = np.zeros_like(e.lames[2, :N_lame], dtype=np.int)
         while True:
             e.dt = e.time() - e.t
             e.update()
             e.t = e.time()
-            nbpas = [int(theta*e.n_pas) for theta in e.lames[2, :]]
+            nbpas = [int(theta*e.n_pas) for theta in e.lames[2, :N_lame]]
             dnbpas =  nbpas - nbpas_old
             nbpas_old = nbpas_old + dnbpas
             if e.verb: print('@', e.t, convert(dnbpas), '-fps=', 1./e.dt)
             ser.write(convert(dnbpas))
+            dt = e.time() - e.t
+            if 1./e.desired_fps - dt>0.: time.sleep(1./e.desired_fps - dt)
 
 def client(e):
     if e.stream:
