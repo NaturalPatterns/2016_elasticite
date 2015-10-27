@@ -61,7 +61,7 @@ class EdgeGrid():
 
         self.port = "5556"
         # moteur:
-        self.serial_port, self.baud_rate = '/dev/ttyACM0', 230400
+        self.serial_port, self.baud_rate = '/dev/ttyUSB0', 115200
         # 1.8 deg par pas (=200 pas par tour) x 32 divisions de pas
         # demultiplication : pignon1= 14 dents, pignon2 = 40 dents
         self.n_pas = 200. * 32. * 40 / 14
@@ -573,10 +573,11 @@ def serial(e):
     import serial
     alphabet = 'ABCDEFGHIJKLMNOPQRSTUVwXYZabcdefghijklmnopqrstuvwxyz'
     def convert(increment):
-        #msg  = ''
-        #for i in len(increment):
-        #    msg += alphabet(i) + str(increment[i])  + ';' 
-        msg = sum([alphabet(i) + str(increment[i])  + ';' for i in len(increment)]) 
+        msg  = ''
+        for i, increment_ in enumerate(increment):
+            #print(alphabet[i], increment_, str(increment_))
+            msg += alphabet[i] + str(increment_)  + ';' 
+        #msg = sum([alphabet(i) + str(increment[i])  + ';' for i in len(increment)]) 
         return msg  
     
     with serial.Serial(e.serial_port, e.baud_rate) as ser:
