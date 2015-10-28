@@ -11,6 +11,7 @@ import time
 #
 # https://zeromq.github.io/pyzmq/serialization.html
 def send_array(socket, A, flags=0, copy=True, track=False):
+    import zmq
     """send a numpy array with metadata"""
     md = dict(
         dtype = str(A.dtype),
