@@ -196,7 +196,7 @@ class EdgeGrid():
             particles_mirror = particles.copy() # the new set of particles with their mirror image
             for segment in self.structure_as_segments():
                 particles_mirror = np.hstack((particles_mirror, mirror(particles, segment, alpha**(i+1))))
-            print(alpha**(i+1), particles_mirror[-1, -1])
+            # print(alpha**(i+1), particles_mirror[-1, -1])
             self.particles = particles_mirror
 
     def structure_as_segments(self):
@@ -371,8 +371,10 @@ class EdgeGrid():
             ax.set_xlim([-self.total_width, self.total_width])
             ax.set_ylim([-self.total_width*H/W, self.total_width*H/W])
         else:
-            ax.set_xlim([self.particles[0, :].min(), self.particles[0, :].max()])
-            ax.set_ylim([self.particles[1, :].min(), self.particles[1, :].max()])
+            ax.set_xlim([min(self.particles[0, :].min(), self.particles[1, :].min()/H*W), 
+                         max(self.particles[0, :].max(), self.particles[1, :].max()/H*W)])
+            ax.set_ylim([min(self.particles[1, :].min(), self.particles[0, :].min()*H/W), 
+                         max(self.particles[1, :].max(), self.particles[0, :].max()*H/W)])
         ax.axis('off') 
         return fig, ax
     
