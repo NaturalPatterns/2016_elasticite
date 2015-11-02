@@ -195,18 +195,17 @@ class EdgeGrid():
             particles = self.particles.copy()
             particles_mirror = particles.copy()
             for segment in self.structure_as_segments():
-                particles_mirror = np.hstack((particles_mirror, mirror(particles, np.array(segment), alpha**(i+1))))
+                particles_mirror = np.hstack((particles_mirror, mirror(particles, segment, alpha**(i+1))))
 
             self.particles = particles_mirror
-         
-        
+
     def structure_as_segments(self):
         struct = self.lames[:3, -self.struct_N:]
         segments = []
         for i, vec in enumerate(struct.T.tolist()):
             x0, x1 = vec[0] - .5*self.struct_longueur*np.cos(vec[2]), vec[0] + .5*self.struct_longueur*np.cos(vec[2])
             y0, y1 = vec[1] - .5*self.struct_longueur*np.sin(vec[2]), vec[1] + .5*self.struct_longueur*np.sin(vec[2])
-            segments.append(np.array([[x0, y0], [x1, y1]]))
+            segments.append(np.array([[x0, y0], [x1, y1]]).T)
         return segments
             
     def theta_E(self, im, X_, Y_, w):
@@ -364,7 +363,7 @@ class EdgeGrid():
             clip.write_videofile(fname, fps=fps)
         return mpy.ipython_display(fname, fps=fps, loop=1, autoplay=1)
 
-    def plot_structure(self, W=1000, H=618, fig=None, ax=None, border = 0.0, opts = dict(vmin=-1, vmax=1., linewidths=0, cmap=plt.cm.bone)): #, alpha=.5
+    def plot_structure(self, W=1000, H=618, fig=None, ax=None, border = 0.0, opts = dict(vmin=-1, vmax=1., linewidths=0, cmap=plt.cm.hsv)): #, alpha=.5
         if fig is None: fig = plt.figure(figsize=(self.figsize, self.figsize*H/W))
         if ax is None: ax = fig.add_axes((border, border, 1.-2*border, 1.-2*border), axisbg='w')
         scat  = ax.scatter(self.particles[0,:], self.particles[1,:], c=self.particles[2,:], **opts)
@@ -374,7 +373,7 @@ class EdgeGrid():
     
     def animate(self, fps=25, W=1000, H=618, duration=5, fname='/tmp/temp.webm'):
         import matplotlib.pyplot as plt
-        fig, ax = self.plot_structure(fig=None, ax=None, border = 0.0)
+        fig, ax = self.plot_structure(fig=None, ax=None)
         self.dt = 1./fps
 
         from moviepy.video.io.bindings import mplfig_to_npimage
@@ -385,7 +384,7 @@ class EdgeGrid():
                 ax.axis('off')
                 self.t = t
                 self.update()
-                self.plot_structure(fig=fig, ax=ax, border = 0.0)
+                fig, ax = self.plot_structure(fig=fig, ax=ax)
                 return mplfig_to_npimage(fig) # RGB image of the figure
 
             animation = mpy.VideoClip(make_frame_mpl, duration=duration)
