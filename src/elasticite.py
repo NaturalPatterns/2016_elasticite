@@ -38,10 +38,10 @@ def mirror(particles, segment, alpha=1.):
     
     mirror = particles.copy()
     perp = np.array([segment[1][1] - segment[1][0], -(segment[0][1] - segment[0][0])])
-    # distance to the line
     d = perp[0]*(segment[0][1] - particles[0, :]) + perp[1]*(segment[1, 1] - particles[1, :])
     mirror[:2, :] =  particles[:2, :] + 2. * d[np.newaxis, :] * perp[:, np.newaxis] / (perp**2).sum()
-    if mirror.shape[0]>2: mirror[2, :] =  alpha * particles[2, :] 
+    if mirror.shape[0]>2: 
+        mirror[2, :] =  alpha
     return mirror
 
 
@@ -192,11 +192,11 @@ class EdgeGrid():
         
         # duplicate according to mirrors
         for i in range(N_mirror):
-            particles = self.particles.copy()
-            particles_mirror = particles.copy()
+            particles = self.particles.copy() # the current structure to mirror
+            particles_mirror = particles.copy() # the new set of particles with their mirror image
             for segment in self.structure_as_segments():
                 particles_mirror = np.hstack((particles_mirror, mirror(particles, segment, alpha**(i+1))))
-
+            print(alpha**(i+1), particles_mirror[-1, -1])
             self.particles = particles_mirror
 
     def structure_as_segments(self):
@@ -363,12 +363,17 @@ class EdgeGrid():
             clip.write_videofile(fname, fps=fps)
         return mpy.ipython_display(fname, fps=fps, loop=1, autoplay=1)
 
-    def plot_structure(self, W=1000, H=618, fig=None, ax=None, border = 0.0, opts = dict(vmin=-1, vmax=1., linewidths=0, cmap=plt.cm.hsv)): #, alpha=.5
+    def plot_structure(self, W=1000, H=618, fig=None, ax=None, border = 0.0, opts = dict(vmin=-1, vmax=1., linewidths=0, cmap=plt.cm.hsv, alpha=.1), scale='auto'): #
         if fig is None: fig = plt.figure(figsize=(self.figsize, self.figsize*H/W))
         if ax is None: ax = fig.add_axes((border, border, 1.-2*border, 1.-2*border), axisbg='w')
-        scat  = ax.scatter(self.particles[0,:], self.particles[1,:], c=self.particles[2,:], **opts)
-        ax.set_xlim([-self.total_width, self.total_width])
-        ax.set_ylim([-self.total_width*H/W, self.total_width*H/W])
+        scat  = ax.scatter(self.particles[0,::-1], self.particles[1,::-1], c=self.particles[2,::-1], **opts)
+        if not scale is 'auto':
+            ax.set_xlim([-self.total_width, self.total_width])
+            ax.set_ylim([-self.total_width*H/W, self.total_width*H/W])
+        else:
+            ax.set_xlim([self.particles[0, :].min(), self.particles[0, :].max()])
+            ax.set_ylim([self.particles[1, :].min(), self.particles[1, :].max()])
+        ax.axis('off') 
         return fig, ax
     
     def animate(self, fps=25, W=1000, H=618, duration=5, fname='/tmp/temp.webm'):
