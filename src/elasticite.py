@@ -179,7 +179,7 @@ class EdgeGrid():
         for i, vec in enumerate(struct.T.tolist()):
             x0, x1 = vec[0] - .5*self.struct_longueur*np.cos(vec[2]), vec[0] + .5*self.struct_longueur*np.cos(vec[2])
             y0, y1 = vec[1] - .5*self.struct_longueur*np.sin(vec[2]), vec[1] + .5*self.struct_longueur*np.sin(vec[2])
-            segments.append([[x0, y0], [x0, y0]])
+            segments.append(np.array([[x0, y0], [x1, y1]]).T)
         return segments
             
     def theta_E(self, im, X_, Y_, w):
