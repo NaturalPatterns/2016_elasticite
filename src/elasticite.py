@@ -7,7 +7,7 @@ import time
 
 #import matplotlib
 #matplotlib.use("Agg") # agg-backend, so we can create figures without x-server (no PDF, just PNG etc.)
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 #
 # https://zeromq.github.io/pyzmq/serialization.html
 def send_array(socket, A, flags=0, copy=True, track=False):
@@ -27,6 +27,23 @@ def recv_array(socket, flags=0, copy=True, track=False):
     # buf = buffer(msg)
     A = np.frombuffer(msg, dtype=md['dtype'])
     return A.reshape(md['shape'])
+
+def mirror(particles, segment, alpha=1.):
+    """
+    Reflète les points ``particles`` par rapport à ``segment``.
+    
+    See 2015-11-02 élasticité expansion en miroir
+    
+    """
+    
+    mirror = particles.copy()
+    perp = np.array([segment[1][1] - segment[1][0], -(segment[0][1] - segment[0][0])])
+    # distance to the line
+    d = perp[0]*(segment[0][1] - particles[0, :]) + perp[1]*(segment[1, 1] - particles[1, :])
+    mirror[:2, :] =  particles[:2, :] + 2. * d[np.newaxis, :] * perp[:, np.newaxis] / (perp**2).sum()
+    if mirror.shape[0]>2: mirror[2, :] =  alpha * particles[2, :] 
+    return mirror
+
 
 import inspect
 def get_default_args(func):
@@ -163,7 +180,7 @@ class EdgeGrid():
         self.lame_width = np.hstack((self.lame_width, .042*np.ones(self.struct_N))) # en mètres
         
         
-    def sample_structure(self):
+    def sample_structure(self, N_mirror=0, alpha = .8):
         struct = self.lames[:3, -self.struct_N:]
         self.particles = np.ones((3, self.N_particles))
         N_particles_ = self.N_particles/self.struct_N
@@ -172,6 +189,15 @@ class EdgeGrid():
             y0, y1 = vec[1] - .5*self.struct_longueur*np.sin(vec[2]), vec[1] + .5*self.struct_longueur*np.sin(vec[2])
             self.particles[0, i*N_particles_:(i+1)*N_particles_] = np.linspace(x0, x1, N_particles_)
             self.particles[1, i*N_particles_:(i+1)*N_particles_] = np.linspace(y0, y1, N_particles_)
+        # duplicate according to mirrors
+        for i in range(N_mirror):
+            particles = self.particles.copy()
+            particles_mirror = particles.copy()
+            for segment in self.structure_as_segments():
+                particles_mirror = np.hstack((particles_mirror, mirror(particles, np.array(segment), alpha**(i+1))))
+
+            self.particles = particles_mirror
+         
         
     def structure_as_segments(self):
         struct = self.lames[:3, -self.struct_N:]
@@ -179,7 +205,7 @@ class EdgeGrid():
         for i, vec in enumerate(struct.T.tolist()):
             x0, x1 = vec[0] - .5*self.struct_longueur*np.cos(vec[2]), vec[0] + .5*self.struct_longueur*np.cos(vec[2])
             y0, y1 = vec[1] - .5*self.struct_longueur*np.sin(vec[2]), vec[1] + .5*self.struct_longueur*np.sin(vec[2])
-            segments.append(np.array([[x0, y0], [x1, y1]]).T)
+            segments.append(np.array([[x0, y0], [x1, y1]]))
         return segments
             
     def theta_E(self, im, X_, Y_, w):
@@ -337,22 +363,28 @@ class EdgeGrid():
             clip.write_videofile(fname, fps=fps)
         return mpy.ipython_display(fname, fps=fps, loop=1, autoplay=1)
 
+    def plot_structure(self, W=1000, H=618, fig=None, ax=None, border = 0.0, opts = dict(vmin=-1, vmax=1., linewidths=0, cmap=plt.cm.bone, alpha=.5)):
+        if fig is None: fig = plt.figure(figsize=(self.figsize, self.figsize*H/W))
+        if ax is None: ax = fig.add_axes((border, border, 1.-2*border, 1.-2*border), axisbg='w')
+        scat  = ax.scatter(self.particles[0,:], self.particles[1,:], c=self.particles[2,:], **opts)
+        ax.set_xlim([-self.total_width, self.total_width])
+        ax.set_ylim([-self.total_width*H/W, self.total_width*H/W])
+        return fig, ax
+    
     def animate(self, fps=25, W=1000, H=618, duration=5, fname='/tmp/temp.webm'):
         import matplotlib.pyplot as plt
-        fig, ax = plt.subplots(1, 1, figsize=(self.figsize, self.figsize*H/W))
+        fig, ax = self.plot_structure(fig=None, ax=None, border = 0.0)
         self.dt = 1./fps
-        opts = dict(vmin=-1, vmax=1., linewidths=0, cmap=plt.cm.bone, alpha=.5)
+
         from moviepy.video.io.bindings import mplfig_to_npimage
         import moviepy.editor as mpy
         if not os.path.isfile(fname):
             def make_frame_mpl(t):    
                 ax.clear()
                 ax.axis('off')
-                ax.set_ylim([-self.total_width*H/W, self.total_width*H/W])
-                ax.set_xlim([-self.total_width, self.total_width])
                 self.t = t
                 self.update()
-                scat  = ax.scatter(self.particles[0,:], self.particles[1,:], c=self.particles[2,:], **opts)
+                self.plot_structure(fig=fig, ax=ax, border = 0.0)
                 return mplfig_to_npimage(fig) # RGB image of the figure
 
             animation = mpy.VideoClip(make_frame_mpl, duration=duration)
