@@ -62,7 +62,7 @@ class EdgeGrid():
                  figsize = 13,
                  line_width = 4.,
                  grid_type = 'hex',
-                 structure = True,
+                 structure = True, struct_angles = [-15., -65., -102.],
                  verb = False,
                  mode = 'both',
                  ):
@@ -95,9 +95,9 @@ class EdgeGrid():
         self.background_depth = 100 # taille du 104 en profondeur
         self.f = .1
         self.struct_N = 6
-        self.struct_position=[0., 3.5]
-        self.struct_longueur=3.
-        self.struct_angles=[-15., -65., -102.]
+        self.struct_position = [0., 3.5]
+        self.struct_longueur = 3.
+        self.struct_angles = struct_angles
         self.figsize = figsize
         self.line_width = line_width
         self.grid_type = grid_type
@@ -367,7 +367,10 @@ class EdgeGrid():
         if fig is None: fig = plt.figure(figsize=(self.figsize, self.figsize*H/W))
         if ax is None: ax = fig.add_axes((border, border, 1.-2*border, 1.-2*border), axisbg='w')
         scat  = ax.scatter(self.particles[0,::-1], self.particles[1,::-1], c=self.particles[2,::-1], **opts)
-        if not scale is 'auto':
+        if type(scale) is float:
+            ax.set_xlim([-scale, scale])
+            ax.set_ylim([-scale*H/W, scale*H/W])
+        elif not scale is 'auto':
             ax.set_xlim([-self.total_width, self.total_width])
             ax.set_ylim([-self.total_width*H/W, self.total_width*H/W])
         else:
@@ -378,20 +381,20 @@ class EdgeGrid():
         ax.axis('off') 
         return fig, ax
     
-    def animate(self, fps=25, W=1000, H=618, duration=5, fname='/tmp/temp.webm'):
+    def animate(self, fps=25, W=1000, H=618, duration=5, scale='auto', fname='/tmp/temp.webm'):
         import matplotlib.pyplot as plt
-        fig, ax = self.plot_structure(fig=None, ax=None)
         self.dt = 1./fps
 
         from moviepy.video.io.bindings import mplfig_to_npimage
         import moviepy.editor as mpy
         if not os.path.isfile(fname):
-            def make_frame_mpl(t):    
-                ax.clear()
-                ax.axis('off')
+            def make_frame_mpl(t):   
                 self.t = t
                 self.update()
-                fig, ax = self.plot_structure(fig=fig, ax=ax)
+                fig, ax = self.plot_structure(fig=None, ax=None, scale=scale)
+                #ax.clear()
+                ax.axis('off')
+                #fig, ax = self.plot_structure(fig=fig, ax=ax)
                 return mplfig_to_npimage(fig) # RGB image of the figure
 
             animation = mpy.VideoClip(make_frame_mpl, duration=duration)
