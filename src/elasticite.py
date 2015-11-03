@@ -363,7 +363,7 @@ class EdgeGrid():
             clip.write_videofile(fname, fps=fps)
         return mpy.ipython_display(fname, fps=fps, loop=1, autoplay=1)
 
-    def plot_structure(self, W=1000, H=618, fig=None, ax=None, border = 0.0, opts = dict(vmin=-1, vmax=1., linewidths=0, cmap=plt.cm.hsv, alpha=.1), scale='auto'): #
+    def plot_structure(self, W=1000, H=618, fig=None, ax=None, border = 0.0, opts = dict(vmin=-1, vmax=1., linewidths=0, cmap=plt.cm.hsv, alpha=.1, s=3.), scale='auto'): #
         if fig is None: fig = plt.figure(figsize=(self.figsize, self.figsize*H/W))
         if ax is None: ax = fig.add_axes((border, border, 1.-2*border, 1.-2*border), axisbg='w')
         scat  = ax.scatter(self.particles[0,::-1], self.particles[1,::-1], c=self.particles[2,::-1], **opts)
@@ -381,9 +381,10 @@ class EdgeGrid():
         ax.axis('off') 
         return fig, ax
     
-    def animate(self, fps=25, W=1000, H=618, duration=5, scale='auto', fname='/tmp/temp.webm'):
+    def animate(self, fps=10, W=1000, H=618, duration=20, scale='auto', fname='/tmp/temp.webm'):
         import matplotlib.pyplot as plt
         self.dt = 1./fps
+        inches_per_pt = 1.0/72.27
 
         from moviepy.video.io.bindings import mplfig_to_npimage
         import moviepy.editor as mpy
@@ -391,7 +392,8 @@ class EdgeGrid():
             def make_frame_mpl(t):   
                 self.t = t
                 self.update()
-                fig, ax = self.plot_structure(fig=None, ax=None, scale=scale)
+                fig = plt.figure(figsize=(W*inches_per_pt, H*inches_per_pt))
+                fig, ax = self.plot_structure(fig=fig, ax=None, scale=scale)
                 #ax.clear()
                 ax.axis('off')
                 #fig, ax = self.plot_structure(fig=fig, ax=ax)

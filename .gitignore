@@ -5,4 +5,4 @@ posts/.ipynb_checkpoints
 .ipynb_checkpoints
 src/elasticite.egg-info
 files
-post/__temp*
+posts/__temp__*
