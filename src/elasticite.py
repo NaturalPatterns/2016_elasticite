@@ -304,9 +304,9 @@ class EdgeGrid():
         cocir_d = lambda d: np.exp(-d/.05)
         colin_d = lambda d: np.exp(-d/.2)
 
-        force += colin_t(self.t) * np.sum(np.sin(2*(self.angle_relatif()))*colin_d(self.distance()), axis=1)
-        force += cocir_t(self.t) * np.sum(np.sin(2*(self.angle_cocir()))*cocir_d(self.distance()), axis=1)
-        force += noise(self.t)*np.pi*np.random.randn(self.N_lame)
+        force += colin_t(self.t) * np.sum(np.sin(2*(self.angle_relatif()[:N_lame]))*colin_d(self.distance()[:N_lame]), axis=1)
+        force += cocir_t(self.t) * np.sum(np.sin(2*(self.angle_cocir()[:N_lame]))*cocir_d(self.distance()[:N_lame]), axis=1)
+        force += noise(self.t)*np.pi*np.random.randn(N_lame)
         force -= damp(self.t) * self.lames[3, :N_lame]/self.dt
         return 42.*force
 
