@@ -80,7 +80,7 @@ class EdgeGrid():
         #if mode=='display': self.stream = True
         self.serial =  (mode=='serial') # converting a stream to the serial port to control the arduino
         if self.serial: self.verb=True
-        self.desired_fps = 50.
+        self.desired_fps = 30.
         self.structure = structure
         self.screenshot = True # saves a screenshot after the rendering
 
@@ -642,12 +642,16 @@ def server(e):
 def serial(e):
     import serial
     alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+
+    def message(i, increment):
+        return alphabet[i] + str(increment)  + ';' 
+    
     def convert(increment):
         msg  = ''
         for i, increment_ in enumerate(increment):
-            msg += alphabet[i] + str(increment_)  + ';' 
+            msg += message(i, increment)
         return msg  
-    
+
     with serial.Serial(e.serial_port, e.baud_rate) as ser:
         if e.structure: N_lame = e.N_lame-e.struct_N
         else: N_lame = e.N_lame
@@ -660,8 +664,10 @@ def serial(e):
             nbpas = [int(theta/2/np.pi*e.n_pas) for theta in e.lames[2, :N_lame]]
             dnbpas =  nbpas - nbpas_old
             nbpas_old = nbpas_old + dnbpas
-            if e.verb: print('@', e.t, convert(dnbpas), '-fps=', 1./e.dt)
-            ser.write(convert(dnbpas))
+            # if e.verb: print('@', e.t, convert(dnbpas), '-fps=', 1./e.dt)
+            if e.verb: print('@', e.t, '-fps=', 1./e.dt)
+            #ser.write(convert(dnbpas))
+            for i, increment in enumerate(dnbpas): ser.write(message(i, increment))
             dt = e.time() - e.t
             if 1./e.desired_fps - dt>0.: time.sleep(1./e.desired_fps - dt)
 
