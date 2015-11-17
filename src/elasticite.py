@@ -396,7 +396,7 @@ class EdgeGrid():
         inches_per_pt = 1.0/72.27
         from moviepy.video.io.bindings import mplfig_to_npimage
         import moviepy.editor as mpy
-        if True: #not os.path.isfile(fname):
+        if not os.path.isfile(fname):
             def make_frame_mpl(t):
                 self.t = t
                 self.update()
@@ -410,12 +410,10 @@ class EdgeGrid():
             animation = mpy.VideoClip(make_frame_mpl, duration=duration)
             plt.close('all')
         if fname is None:
-            #import tempfile
-            #fname = tempfile.mktemp() + '.webm'
-            return animation.ipython_display(fps=fps, loop=1, autoplay=1, width=W)
-        else:
-            animation.write_videofile(fname, fps=fps)
-            return mpy.ipython_display(fname, fps=fps, loop=1, autoplay=1, width=W)
+            import tempfile
+            fname = tempfile.mktemp() + '.webm'
+        animation.write_videofile(fname, fps=fps)
+        return mpy.ipython_display(fname, fps=fps, loop=1, autoplay=1, width=W)
     #def show_edges(self, fig=None, a=None):
         #self.N_theta = 12
         #self.thetas = np.linspace(0, np.pi, self.N_theta)

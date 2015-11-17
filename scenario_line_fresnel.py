@@ -18,7 +18,7 @@ class EdgeGrid(el.EdgeGrid):
         if self.structure: N_lame = self.N_lame-self.struct_N
         else: N_lame = self.N_lame
         xf = location[0] #+ .2 * np.sin(2*np.pi*(self.t)/duration)
-        zf = location[2] + 1.8 * np.sin(2*np.pi*(self.t)/duration)
+        zf = location[2] + 4. * np.cos(2*np.pi*(self.t)/duration)
         self.lames[2, :N_lame] = np.mod(np.pi/2 + np.arctan2(self.lames[1, :N_lame]-zf, self.lames[0, :N_lame]-xf), np.pi)
 
 if __name__ == "__main__":
