@@ -368,7 +368,7 @@ class EdgeGrid():
         return mpy.ipython_display(fname, fps=fps, loop=1, autoplay=1)
 
     def plot_structure(self, W=1000, H=618, fig=None, ax=None, border = 0.0, opts = dict(vmin=-1, vmax=1., linewidths=0, cmap=None, alpha=.1, s=3.), scale='auto'): #
-	cmap=plt.cm.hsv
+        cmap=plt.cm.hsv
         if fig is None: fig = plt.figure(figsize=(self.figsize, self.figsize*H/W))
         if ax is None: ax = fig.add_axes((border, border, 1.-2*border, 1.-2*border), axisbg='w')
         scat  = ax.scatter(self.particles[0,::-1], self.particles[1,::-1], c=self.particles[2,::-1], **opts)
