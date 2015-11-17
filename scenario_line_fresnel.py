@@ -14,7 +14,7 @@ duration = el.get_default_args(el.EdgeGrid.render)['duration']
 location = el.get_default_args(el.EdgeGrid.render)['location']
 
 class EdgeGrid(el.EdgeGrid):
-    def update(self):        
+    def update(self):
         if self.structure: N_lame = self.N_lame-self.struct_N
         else: N_lame = self.N_lame
         xf = location[0] #+ .2 * np.sin(2*np.pi*(self.t)/duration)

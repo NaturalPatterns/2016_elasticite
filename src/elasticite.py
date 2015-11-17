@@ -644,13 +644,13 @@ def serial(e):
     alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
 
     def message(i, increment):
-        return alphabet[i] + str(increment)  + ';' 
+        return alphabet[i] + str(increment)  + ';\n' 
     
     def convert(increment):
         msg  = ''
         for i, increment_ in enumerate(increment):
             msg += message(i, increment)
-        return msg  
+        return msg
 
     with serial.Serial(e.serial_port, e.baud_rate) as ser:
         if e.structure: N_lame = e.N_lame-e.struct_N
