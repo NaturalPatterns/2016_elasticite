@@ -88,8 +88,8 @@ class EdgeGrid():
         # moteur:
         self.serial_port, self.baud_rate = '/dev/ttyUSB0', 115200
         # 1.8 deg par pas (=200 pas par tour) x 32 divisions de pas
-        # demultiplication : pignon1= 14 dents, pignon2 = 40 dents
-        self.n_pas = 200. * 32. * 40 / 14
+        # demultiplication : pignon1= 14 dents, pignon2 = 60 dents
+        self.n_pas = 200. * 32. * 60 / 14
         # TODO : Vitesse Max moteur = 1 tour en 3,88
 
         
@@ -369,8 +369,10 @@ class EdgeGrid():
             clip.write_videofile(fname, fps=fps)
         return mpy.ipython_display(fname, fps=fps, loop=1, autoplay=1)
 
-    def plot_structure(self, W=1000, H=618, fig=None, ax=None, border = 0.0, opts = dict(vmin=-1, vmax=1., linewidths=0, cmap=None, alpha=.1, s=3.), scale='auto'): #
-        cmap=plt.cm.hsv
+    def plot_structure(self, W=1000, H=618, fig=None, ax=None, border = 0.0, 
+            opts = dict(vmin=-1, vmax=1., linewidths=0, cmap=None, alpha=.1, s=3.), 
+            scale='auto'): #
+        opts.update(cmap=plt.cm.hsv)
         if fig is None: fig = plt.figure(figsize=(self.figsize, self.figsize*H/W))
         if ax is None: ax = fig.add_axes((border, border, 1.-2*border, 1.-2*border), axisbg='w')
         scat  = ax.scatter(self.particles[0,::-1], self.particles[1,::-1], c=self.particles[2,::-1], **opts)
@@ -388,15 +390,14 @@ class EdgeGrid():
         ax.axis('off') 
         return fig, ax
     
-    def animate(self, fps=10, W=1000, H=618, duration=20, scale='auto', fname='/tmp/temp.webm'):
+    def animate(self, fps=10, W=1000, H=618, duration=20, scale='auto', fname=None):
         import matplotlib.pyplot as plt
         self.dt = 1./fps
         inches_per_pt = 1.0/72.27
-
         from moviepy.video.io.bindings import mplfig_to_npimage
         import moviepy.editor as mpy
-        if not os.path.isfile(fname):
-            def make_frame_mpl(t):   
+        if True: #not os.path.isfile(fname):
+            def make_frame_mpl(t):
                 self.t = t
                 self.update()
                 fig = plt.figure(figsize=(W*inches_per_pt, H*inches_per_pt))
@@ -407,9 +408,14 @@ class EdgeGrid():
                 return mplfig_to_npimage(fig) # RGB image of the figure
 
             animation = mpy.VideoClip(make_frame_mpl, duration=duration)
-            animation.write_videofile(fname, fps=fps)
             plt.close('all')
-        return mpy.ipython_display(fname, fps=fps, loop=1, autoplay=1, width=W)
+        if fname is None:
+            #import tempfile
+            #fname = tempfile.mktemp() + '.webm'
+            return animation.ipython_display(fps=fps, loop=1, autoplay=1, width=W)
+        else:
+            animation.write_videofile(fname, fps=fps)
+            return mpy.ipython_display(fname, fps=fps, loop=1, autoplay=1, width=W)
     #def show_edges(self, fig=None, a=None):
         #self.N_theta = 12
         #self.thetas = np.linspace(0, np.pi, self.N_theta)
@@ -653,7 +659,7 @@ def serial(e):
             e.dt = e.time() - e.t
             e.update()
             e.t = e.time()
-            nbpas = [int(theta*e.n_pas) for theta in e.lames[2, :N_lame]]
+            nbpas = [int(theta/2/np.pi*e.n_pas) for theta in e.lames[2, :N_lame]]
             dnbpas =  nbpas - nbpas_old
             nbpas_old = nbpas_old + dnbpas
             if e.verb: print('@', e.t, convert(dnbpas), '-fps=', 1./e.dt)
