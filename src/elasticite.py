@@ -5,9 +5,13 @@ import os
 import numpy as np
 import time
 
-#import matplotlib
-#matplotlib.use("Agg") # agg-backend, so we can create figures without x-server (no PDF, just PNG etc.)
-import matplotlib.pyplot as plt
+try:
+
+	#import matplotlib
+	#matplotlib.use("Agg") # agg-backend, so we can create figures without x-server (no PDF, just PNG etc.)
+	import matplotlib.pyplot as plt
+except:
+	pass
 #
 # https://zeromq.github.io/pyzmq/serialization.html
 def send_array(socket, A, flags=0, copy=True, track=False):
@@ -75,7 +79,7 @@ class EdgeGrid():
         #if mode=='display': self.stream = True
         self.serial =  (mode=='serial') # converting a stream to the serial port to control the arduino
         if self.serial: self.verb=True
-        self.desired_fps=750.
+        self.desired_fps = 50.
         self.structure = structure
         self.screenshot = True # saves a screenshot after the rendering
 
@@ -363,7 +367,8 @@ class EdgeGrid():
             clip.write_videofile(fname, fps=fps)
         return mpy.ipython_display(fname, fps=fps, loop=1, autoplay=1)
 
-    def plot_structure(self, W=1000, H=618, fig=None, ax=None, border = 0.0, opts = dict(vmin=-1, vmax=1., linewidths=0, cmap=plt.cm.hsv, alpha=.1, s=3.), scale='auto'): #
+    def plot_structure(self, W=1000, H=618, fig=None, ax=None, border = 0.0, opts = dict(vmin=-1, vmax=1., linewidths=0, cmap=None, alpha=.1, s=3.), scale='auto'): #
+	cmap=plt.cm.hsv
         if fig is None: fig = plt.figure(figsize=(self.figsize, self.figsize*H/W))
         if ax is None: ax = fig.add_axes((border, border, 1.-2*border, 1.-2*border), axisbg='w')
         scat  = ax.scatter(self.particles[0,::-1], self.particles[1,::-1], c=self.particles[2,::-1], **opts)
