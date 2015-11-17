@@ -9,14 +9,12 @@ Sur une ligne de lames, on fait tourner les lames avec un mouvement relativement
 
 import elasticite as el
 import numpy as np
-duration = el.get_default_args(el.EdgeGrid.render)['duration']
-duration = 10.
 
 class EdgeGrid(el.EdgeGrid):
-    def update(self):
+    def update(self, duration = 30.):
         if self.structure: N_lame = self.N_lame-self.struct_N
         else: N_lame = self.N_lame
-        self.lames[2, :N_lame] = 10.* np.pi/180. * np.sin(2*np.pi*(self.t)/duration)
+        self.lames[2, :N_lame] = 45.* np.pi/180. * np.sin(2*np.pi*(self.t)/duration)
 
 if __name__ == "__main__":
     import sys
