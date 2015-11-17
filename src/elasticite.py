@@ -52,6 +52,7 @@ def mirror(particles, segment, alpha=1.):
 import inspect
 def get_default_args(func):
     """
+    
     returns a dictionary of arg_name:default_values for the input function
     """
     args, varargs, keywords, defaults = inspect.getargspec(func)
@@ -108,7 +109,8 @@ class EdgeGrid():
         self.grid(N_lame=N_lame, N_lame_X=N_lame_X)
         # self.lames[2, :] = np.pi*np.random.rand(self.N_lame)
 
-        self.N_particles = self.struct_N * 2**6
+        self.N_particles_per_lame = 2**3
+        self.N_particles = self.struct_N * self.N_particles_per_lame
         if structure: self.sample_structure()
         
     def time(self, init=False):
