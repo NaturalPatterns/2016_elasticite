@@ -75,7 +75,7 @@ class EdgeGrid():
         #if mode=='display': self.stream = True
         self.serial =  (mode=='serial') # converting a stream to the serial port to control the arduino
         if self.serial: self.verb=True
-        self.desired_fps=750.
+        self.desired_fps = 750.
         self.structure = structure
         self.screenshot = True # saves a screenshot after the rendering
 
