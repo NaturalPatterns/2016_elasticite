@@ -95,7 +95,6 @@ class EdgeGrid():
         self.n_pas = 200. * 32. * 60 / 14
         # TODO : Vitesse Max moteur = 1 tour en 3,88
 
-        
         # taille installation
         self.total_width = 8 # en mètres        
         self.lames_width = 5 # en mètres        
@@ -540,11 +539,10 @@ try:
             super(Window, self).__init__(config=smoothConfig, *args, **kwargs)
             self.e = e
             if not self.e.filename is None:
-                if not os.path.isfile(self.e.filename):
-                    z = np.load(self.e.filename)
-                    T, Thetas = z[0, :], z[1:, :]
+                if os.path.isfile(self.e.filename):
+                    self.e.z = np.load(self.e.filename)
                 else:
-                    z = np.zeros((0, self.e.N_lame+1))
+                    self.e.z = np.zeros((0, self.e.N_lame+1))
 
         #@self.event
         def on_key_press(self, symbol, modifiers):
@@ -581,11 +579,12 @@ try:
 
                 if not self.e.filename is None:
                     if self.e.verb: print("recording at t=", self.e.t)
-                    z = np.vstack((z, np.hstack((np.array(self.e.t, Theta)))))
+                    self.e.z = np.vstack((self.e.z, np.hstack((np.array(self.e.t), Theta))))
             else:
-                i_t = np.argmin(T > self.e.t)
+                self.e.t = self.e.time()
+                i_t = np.argmin(self.e.z[:, 0] < self.e.t)
                 if self.e.verb: print("playback at t=", self.e.t, i_t)
-                X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], Thetas[i_t, :] 
+                X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], self.e.z[i_t, 1:] 
 
             self.W = float(self.width)/self.height
             self.clear()

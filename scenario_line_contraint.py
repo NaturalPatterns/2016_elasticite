@@ -23,5 +23,5 @@ if __name__ == "__main__":
 
 #     e = EdgeGrid(N_lame=25, grid_type='line', mode=mode, verb=False)
     # to test writing / reading from a file
-    e = EdgeGrid(N_lame=25, grid_type='line', mode=mode, verb=False, filename='/tmp/line_contraint.npy')
+    e = EdgeGrid(N_lame=25, grid_type='line', mode=mode, verb=True, filename='/tmp/line_contraint.npy')
     el.main(e)
