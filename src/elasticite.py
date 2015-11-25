@@ -341,25 +341,26 @@ class EdgeGrid():
                 self.socket.send (b"Hello")
                 if self.verb: print( "Received reply ", message)
 
-                X, Y, Theta = self.lames[0, :], self.lames[1, :], recv_array(self.socket)
+#                 X, Y, Theta = self.lames[0, :], self.lames[1, :], recv_array(self.socket)
+                self.lames[2, :] = recv_array(self.socket)
                 if self.verb: print("Received reply ", Theta.shape)
             else:
                 self.dt = self.time() - self.t
                 self.update()
                 self.t = self.time()
-                X, Y, Theta = self.lames[0, :], self.lames[1, :], self.lames[2, :]
+#                 X, Y, Theta = self.lames[0, :], self.lames[1, :], self.lames[2, :]
 
             if not self.filename is None:
                 # recording
                 if self.verb: print("recording at t=", self.t)
-                self.z = np.vstack((self.z, np.hstack((np.array(self.t), Theta))))
+                self.z = np.vstack((self.z, np.hstack((np.array(self.t), self.lames[2, :] ))))
         else: # playback
             self.t = self.time()
             i_t = np.argmin(self.z[:, 0] < self.t)
             if self.verb: print("playback at t=", self.t, i_t)
-            X, Y, Theta = self.lames[0, :], self.lames[1, :], self.z[i_t, 1:]
+            self.lames[2, :] =  self.z[i_t, 1:]
 
-        return X, Y, Theta
+#         return X, Y, Theta
 
     def render(self, fps=10, W=1000, H=618, location=[0, 1.75, -5], head_size=.4, light_intensity=1.2, reflection=1., 
                look_at=[0, 1.5, 0], fov=75, antialiasing=0.001, duration=5, fname='/tmp/temp.webm'):
@@ -616,7 +617,8 @@ try:
 #                 if self.e.verb: print("playback at t=", self.e.t, i_t)
 #                 X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], self.e.z[i_t, 1:]
 # 
-            X, Y, Theta = self.e.receive()
+            self.e.receive()
+            X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], self.e.lames[2, :]
             self.W = float(self.width)/self.height
             self.clear()
             gl.glMatrixMode(gl.GL_PROJECTION);
@@ -678,7 +680,8 @@ def server(e):
         message = socket.recv()
         if e.verb: print("Received request %s" % message)
         e.dt = e.time() - e.t
-        e.update()
+        #e.update()
+        e.receive()
         e.t = e.time()
         send_array(socket, e.lames[2, :])
 
