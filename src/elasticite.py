@@ -433,6 +433,9 @@ class EdgeGrid():
         return fig, ax
     
     def animate(self, fps=10, W=1000, H=618, duration=20, scale='auto', fname=None):
+        if fname is None:
+            import tempfile
+            fname = tempfile.mktemp() + '.webm'
         import matplotlib.pyplot as plt
         self.dt = 1./fps
         inches_per_pt = 1.0/72.27
@@ -451,11 +454,9 @@ class EdgeGrid():
 
             animation = mpy.VideoClip(make_frame_mpl, duration=duration)
             plt.close('all')
-        if fname is None:
-            import tempfile
-            fname = tempfile.mktemp() + '.webm'
         animation.write_videofile(fname, fps=fps)
         return mpy.ipython_display(fname, fps=fps, loop=1, autoplay=1, width=W)
+
     #def show_edges(self, fig=None, a=None):
         #self.N_theta = 12
         #self.thetas = np.linspace(0, np.pi, self.N_theta)
