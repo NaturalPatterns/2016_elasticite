@@ -114,11 +114,19 @@ class EdgeGrid():
         self.N_particles_per_lame = 2**3
         self.N_particles = self.struct_N * self.N_particles_per_lame
         if structure: self.sample_structure()
-        
+
+        # enregistrement / playback
+        if not self.filename is None:
+            if os.path.isfile(self.filename):
+            # le fichier existe, on charge
+                self.z = np.load(self.filename)
+            else: # on enregistre
+                self.z = np.zeros((0, self.N_lame+1))
+
     def time(self, init=False):
         if init: return time.time()
         else: return time.time() - self.t0
-        
+
     def grid(self, N_lame, N_lame_X):
         """
         The coordinates of the screen are centered on the (0, 0) point and axis are the classical convention:
@@ -325,6 +333,34 @@ class EdgeGrid():
         self.lames[3, :N_lame] += self.champ() * self.dt
         self.lames[2, :N_lame] += self.lames[3, :N_lame]*self.dt/2
         
+    def receive(self):
+
+        if not os.path.isfile(self.filename):
+            if self.stream:
+                if self.verb: print("Sending request")
+                self.socket.send (b"Hello")
+                if self.verb: print( "Received reply ", message)
+
+                X, Y, Theta = self.lames[0, :], self.lames[1, :], recv_array(self.socket)
+                if self.verb: print("Received reply ", Theta.shape)
+            else:
+                self.dt = self.time() - self.t
+                self.update()
+                self.t = self.time()
+                X, Y, Theta = self.lames[0, :], self.lames[1, :], self.lames[2, :]
+
+            if not self.filename is None:
+                # recording
+                if self.verb: print("recording at t=", self.t)
+                self.z = np.vstack((self.z, np.hstack((np.array(self.t), Theta))))
+        else: # playback
+            self.t = self.time()
+            i_t = np.argmin(self.z[:, 0] < self.t)
+            if self.verb: print("playback at t=", self.t, i_t)
+            X, Y, Theta = self.lames[0, :], self.lames[1, :], self.z[i_t, 1:]
+
+        return X, Y, Theta
+
     def render(self, fps=10, W=1000, H=618, location=[0, 1.75, -5], head_size=.4, light_intensity=1.2, reflection=1., 
                look_at=[0, 1.5, 0], fov=75, antialiasing=0.001, duration=5, fname='/tmp/temp.webm'):
 
@@ -538,11 +574,6 @@ try:
             #super(Window, self).__init__(*args, **kwargs)
             super(Window, self).__init__(config=smoothConfig, *args, **kwargs)
             self.e = e
-            if not self.e.filename is None:
-                if os.path.isfile(self.e.filename):
-                    self.e.z = np.load(self.e.filename)
-                else:
-                    self.e.z = np.zeros((0, self.e.N_lame+1))
 
         #@self.event
         def on_key_press(self, symbol, modifiers):
@@ -561,31 +592,31 @@ try:
     #
         #@self.win.event
         def on_draw(self):
-            if not os.path.isfile(self.e.filename):
-                if self.e.stream:
-                    if self.e.verb: print("Sending request")
-                    self.e.socket.send (b"Hello")
-                    #message = self.e.socket.recv()
-                    #print "Received reply ", message
-                    #return
-
-                    X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], recv_array(self.e.socket)
-                    if self.e.verb: print("Received reply ", Theta.shape)
-                else:
-                    self.e.dt = self.e.time() - self.e.t
-                    self.e.update()
-                    self.e.t = self.e.time()
-                    X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], self.e.lames[2, :]
-
-                if not self.e.filename is None:
-                    if self.e.verb: print("recording at t=", self.e.t)
-                    self.e.z = np.vstack((self.e.z, np.hstack((np.array(self.e.t), Theta))))
-            else:
-                self.e.t = self.e.time()
-                i_t = np.argmin(self.e.z[:, 0] < self.e.t)
-                if self.e.verb: print("playback at t=", self.e.t, i_t)
-                X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], self.e.z[i_t, 1:] 
-
+#             if not os.path.isfile(self.e.filename):
+#                 if self.e.stream:
+#                     if self.e.verb: print("Sending request")
+#                     self.e.socket.send (b"Hello")
+#                     if self.e.verb: print( "Received reply ", message)
+# 
+#                     X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], recv_array(self.e.socket)
+#                     if self.e.verb: print("Received reply ", Theta.shape)
+#                 else:
+#                     self.e.dt = self.e.time() - self.e.t
+#                     self.e.update()
+#                     self.e.t = self.e.time()
+#                     X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], self.e.lames[2, :]
+# 
+#                 if not self.e.filename is None:
+#                     # recording
+#                     if self.e.verb: print("recording at t=", self.e.t)
+#                     self.e.z = np.vstack((self.e.z, np.hstack((np.array(self.e.t), Theta))))
+#             else: # playback
+#                 self.e.t = self.e.time()
+#                 i_t = np.argmin(self.e.z[:, 0] < self.e.t)
+#                 if self.e.verb: print("playback at t=", self.e.t, i_t)
+#                 X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], self.e.z[i_t, 1:]
+# 
+            X, Y, Theta = self.e.receive()
             self.W = float(self.width)/self.height
             self.clear()
             gl.glMatrixMode(gl.GL_PROJECTION);
@@ -683,7 +714,6 @@ def serial(e):
             for i, increment in enumerate(dnbpas): ser.write(message(i, increment))
             dt = e.time() - e.t
             if 1./e.desired_fps - dt>0.: time.sleep(1./e.desired_fps - dt)
-
 
 def client(e):
     if e.stream:
