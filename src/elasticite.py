@@ -596,9 +596,10 @@ try:
     #
         #@self.win.event
         def on_draw(self):
-            if (not self.e.period is None) and (not os.path.isfile(self.e.filename)):
-                if self.e.time() > self.e.period:
-                    pyglet.app.exit()
+            if (not self.e.period is None) and (not self.e.filename is None):
+                if not os.path.isfile(self.e.filename):
+                    if self.e.time() > self.e.period:
+                        pyglet.app.exit()
             self.clear()
             gl.glMatrixMode(gl.GL_PROJECTION);
             gl.glLoadIdentity()
