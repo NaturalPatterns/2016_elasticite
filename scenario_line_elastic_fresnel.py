@@ -17,6 +17,7 @@ class EdgeGrid(el.EdgeGrid):
     def champ(self):
         if self.structure: N_lame = self.N_lame-self.struct_N
         else: N_lame = self.N_lame
+
         force = np.zeros_like(self.lames[2, :N_lame])
         damp = lambda t: 0.01 #* np.exp(np.cos(t / 6.) / 3.**2)
         xf = lambda t: location[0]
@@ -28,10 +29,11 @@ class EdgeGrid(el.EdgeGrid):
         force -= damp(self.t) * self.lames[3, :N_lame]/self.dt
         return 3. * force
 
+
 if __name__ == "__main__":
     import sys
     if len(sys.argv)>1: mode = sys.argv[1]
     else: mode = 'both'
 
-    e = EdgeGrid(N_lame=20, grid_type='line', mode=mode, verb=False)
+    e = EdgeGrid(N_lame=25, grid_type='line', mode=mode, verb=False)
     el.main(e)

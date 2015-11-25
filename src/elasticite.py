@@ -337,33 +337,31 @@ class EdgeGrid():
         self.lames[2, :N_lame] += self.lames[3, :N_lame]*self.dt/2
 
     def receive(self):
-
-        if not os.path.isfile(self.filename):
-            if self.stream:
-                if self.verb: print("Sending request")
-                self.socket.send (b"Hello")
-                if self.verb: print( "Received reply ", message)
-
-#                 X, Y, Theta = self.lames[0, :], self.lames[1, :], recv_array(self.socket)
-                self.lames[2, :] = recv_array(self.socket)
-                if self.verb: print("Received reply ", Theta.shape)
-            else:
-                self.dt = self.time() - self.t
-                self.update()
+        if not self.filename is None:
+            if os.path.isfile(self.filename):
                 self.t = self.time()
-#                 X, Y, Theta = self.lames[0, :], self.lames[1, :], self.lames[2, :]
+                i_t = np.argmin(self.z[:, 0] < np.mod(self.t, self.period))
+                if self.verb: print("playback at t=", self.t, i_t)
+                self.lames[2, :] =  self.z[i_t, 1:]
+                return
 
-            if not self.filename is None:
+        if self.stream:
+            if self.verb: print("Sending request")
+            self.socket.send (b"Hello")
+            if self.verb: print( "Received reply ", message)
+            self.lames[2, :] = recv_array(self.socket)
+            if self.verb: print("Received reply ", Theta.shape)
+        else:
+            self.dt = self.time() - self.t
+            self.update()
+            self.t = self.time()
+
+        if not self.filename is None:
+            if not os.path.isfile(self.filename):
                 # recording
                 if self.verb: print("recording at t=", self.t)
                 self.z = np.vstack((self.z, np.hstack((np.array(self.t), self.lames[2, :] ))))
-        else: # playback
-            self.t = self.time()
-            i_t = np.argmin(self.z[:, 0] < np.mod(self.t, self.period))
-            if self.verb: print("playback at t=", self.t, i_t)
-            self.lames[2, :] =  self.z[i_t, 1:]
-
-#         return X, Y, Theta
+        return
 
     def render(self, fps=10, W=1000, H=618, location=[0, 1.75, -5], head_size=.4, light_intensity=1.2, reflection=1., 
                look_at=[0, 1.5, 0], fov=75, antialiasing=0.001, duration=5, fname='/tmp/temp.webm'):
@@ -579,6 +577,7 @@ try:
             #super(Window, self).__init__(*args, **kwargs)
             super(Window, self).__init__(config=smoothConfig, *args, **kwargs)
             self.e = e
+            self.first_frame = True
 
         #@self.event
         def on_key_press(self, symbol, modifiers):
@@ -600,9 +599,6 @@ try:
             if (not self.e.period is None) and (not os.path.isfile(self.e.filename)):
                 if self.e.time() > self.e.period:
                     pyglet.app.exit()
-            self.e.receive()
-            X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], self.e.lames[2, :]
-            self.W = float(self.width)/self.height
             self.clear()
             gl.glMatrixMode(gl.GL_PROJECTION);
             gl.glLoadIdentity()
@@ -613,6 +609,7 @@ try:
     #                             Specify the coordinates for the bottom and top horizontal clipping planes.
     #                         Description
     #         gl.gluOrtho2D(-(self.W-1)/2*self.e.total_width, (self.W+1)/2*self.e.total_width, -self.e.total_width/2, self.e.total_width/2, 0, 0, 1);
+            self.W = float(self.width)/self.height
             gl.gluOrtho2D(-self.W/2*self.e.total_width, self.W/2*self.e.total_width, -self.e.total_width/2, self.e.total_width/2, 0, 0, 1);
             gl.glMatrixMode(gl.GL_MODELVIEW);
             gl.glLoadIdentity();
@@ -621,6 +618,17 @@ try:
             gl.glEnable (gl.GL_BLEND)
             gl.glHint(gl.GL_LINE_SMOOTH_HINT, gl.GL_NICEST)
             gl.glColor3f(0., 0., 0.)
+
+
+            if self.first_frame:
+                print(self.e.t0, self.e.t)
+                self.e.t0 = time.time()
+                self.e.t = self.e.time()
+                print(self.e.t0, self.e.t)
+                self.first_frame = False
+
+            self.e.receive()
+            X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], self.e.lames[2, :]
             dX, dY = np.cos(Theta)/2., np.sin(Theta)/2.
             # coords = np.vstack((X-dX*self.e.lame_length, Y-dY*self.e.lame_length, X+dX*self.e.lame_length, Y+dY*self.e.lame_length))
             coords = np.vstack((
@@ -727,10 +735,12 @@ def client(e):
     window.set_location(screen.width/3, screen.height/3)
     pyglet.gl.glClearColor(1., 1., 1., 1.)
     pyglet.clock.schedule(callback)
+#     window.e.t0 = window.e.time(init=True)
     pyglet.app.run()
-    if not os.path.isfile(e.filename) and  not e.filename is None:
-        # save the file
-        np.save(e.filename, e.z)
+    if not e.filename is None:
+        if not os.path.isfile(e.filename):
+            # save the file
+            np.save(e.filename, e.z)
     if e.screenshot: pyglet.image.get_buffer_manager().get_color_buffer().save('screenshot.png')
 
 def main(e):
