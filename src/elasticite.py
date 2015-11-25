@@ -120,6 +120,7 @@ class EdgeGrid():
             if os.path.isfile(self.filename):
             # le fichier existe, on charge
                 self.z = np.load(self.filename)
+                self.period = self.z[0, :].max()
             else: # on enregistre
                 self.z = np.zeros((0, self.N_lame+1))
 
@@ -356,7 +357,7 @@ class EdgeGrid():
                 self.z = np.vstack((self.z, np.hstack((np.array(self.t), self.lames[2, :] ))))
         else: # playback
             self.t = self.time()
-            i_t = np.argmin(self.z[:, 0] < self.t)
+            i_t = np.argmin(self.z[:, 0] < np.mod(self.t, self.period))
             if self.verb: print("playback at t=", self.t, i_t)
             self.lames[2, :] =  self.z[i_t, 1:]
 
