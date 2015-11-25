@@ -70,7 +70,8 @@ class EdgeGrid():
                  structure = True, struct_angles = [-15., -65., -102.],
                  verb = False,
                  mode = 'both',
-                 filename = None
+                 filename = None,
+                 period = None
                  ):
         self.t0 = self.time(True)
         self.t = self.time()
@@ -96,8 +97,8 @@ class EdgeGrid():
         # TODO : Vitesse Max moteur = 1 tour en 3,88
 
         # taille installation
-        self.total_width = 8 # en mètres        
-        self.lames_width = 5 # en mètres        
+        self.total_width = 8 # en mètres
+        self.lames_width = 5 # en mètres
         self.lames_height = 3 # en mètres
         self.background_depth = 100 # taille du 104 en profondeur
         self.f = .1
@@ -116,11 +117,12 @@ class EdgeGrid():
         if structure: self.sample_structure()
 
         # enregistrement / playback
+        self.period = period
         if not self.filename is None:
             if os.path.isfile(self.filename):
             # le fichier existe, on charge
                 self.z = np.load(self.filename)
-                self.period = self.z[0, :].max()
+                self.period = self.z[:, 0].max()
             else: # on enregistre
                 self.z = np.zeros((0, self.N_lame+1))
 
@@ -333,7 +335,7 @@ class EdgeGrid():
         self.lames[2, :N_lame] += self.lames[3, :N_lame]*self.dt/2
         self.lames[3, :N_lame] += self.champ() * self.dt
         self.lames[2, :N_lame] += self.lames[3, :N_lame]*self.dt/2
-        
+
     def receive(self):
 
         if not os.path.isfile(self.filename):
@@ -594,30 +596,9 @@ try:
     #
         #@self.win.event
         def on_draw(self):
-#             if not os.path.isfile(self.e.filename):
-#                 if self.e.stream:
-#                     if self.e.verb: print("Sending request")
-#                     self.e.socket.send (b"Hello")
-#                     if self.e.verb: print( "Received reply ", message)
-# 
-#                     X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], recv_array(self.e.socket)
-#                     if self.e.verb: print("Received reply ", Theta.shape)
-#                 else:
-#                     self.e.dt = self.e.time() - self.e.t
-#                     self.e.update()
-#                     self.e.t = self.e.time()
-#                     X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], self.e.lames[2, :]
-# 
-#                 if not self.e.filename is None:
-#                     # recording
-#                     if self.e.verb: print("recording at t=", self.e.t)
-#                     self.e.z = np.vstack((self.e.z, np.hstack((np.array(self.e.t), Theta))))
-#             else: # playback
-#                 self.e.t = self.e.time()
-#                 i_t = np.argmin(self.e.z[:, 0] < self.e.t)
-#                 if self.e.verb: print("playback at t=", self.e.t, i_t)
-#                 X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], self.e.z[i_t, 1:]
-# 
+            if (not self.e.period is None) and (not os.path.isfile(self.e.filename)):
+                if self.e.time() > self.e.period:
+                    pyglet.app.exit()
             self.e.receive()
             X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], self.e.lames[2, :]
             self.W = float(self.width)/self.height
