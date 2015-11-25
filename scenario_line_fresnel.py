@@ -26,5 +26,6 @@ if __name__ == "__main__":
     if len(sys.argv)>1: mode = sys.argv[1]
     else: mode = 'both'
 
-    e = EdgeGrid(N_lame=25, grid_type='line', mode=mode, verb=False)
+    e = EdgeGrid(N_lame=25, grid_type='line', mode=mode, verb=False,
+            filename='/tmp/lin_fresnel.npy', period=duration)
     el.main(e)
