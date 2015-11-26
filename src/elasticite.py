@@ -684,6 +684,7 @@ def server(e):
         send_array(socket, e.lames[2, :])
 
 def serial(e):
+    e.load()
     import serial
     alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
 
@@ -703,9 +704,10 @@ def serial(e):
         if e.verb: print("Running serial on port: ", e.serial_port)
         nbpas_old = np.zeros_like(e.lames[2, :N_lame], dtype=np.int)
         while True:
-            e.dt = e.time() - e.t
-            e.update()
-            e.t = e.time()
+            #e.dt = e.time() - e.t
+            #e.update()
+            #e.t = e.time()
+            e.receive()
             nbpas = [int(theta/2/np.pi*e.n_pas) for theta in e.lames[2, :N_lame]]
             dnbpas =  nbpas - nbpas_old
             nbpas_old = nbpas_old + dnbpas
