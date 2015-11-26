@@ -84,8 +84,8 @@ class EdgeGrid():
         self.filename = filename
         self.serial =  (mode=='serial') # converting a stream to the serial port to control the arduino
         if self.serial: self.verb=True
-        self.desired_fps = 750.
-#         self.desired_fps = 30.
+#         self.desired_fps = 750.
+        self.desired_fps = 60.
         self.structure = structure
         self.screenshot = True # saves a screenshot after the rendering
 
@@ -597,7 +597,7 @@ try:
         #@self.win.event
         def on_draw(self):
             if (not self.e.period is None) and (not self.e.filename is None):
-                if not os.path.isfile(self.e.filename):
+                if True: #not os.path.isfile(self.e.filename):
                     if self.e.time() > self.e.period:
                         pyglet.app.exit()
             self.clear()
@@ -627,6 +627,9 @@ try:
                 self.e.t = self.e.time()
                 print(self.e.t0, self.e.t)
                 self.first_frame = False
+
+            dt = self.e.time() - self.e.t
+            if 1./self.e.desired_fps - dt>0.: time.sleep(1./self.e.desired_fps - dt)
 
             self.e.receive()
             X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], self.e.lames[2, :]
