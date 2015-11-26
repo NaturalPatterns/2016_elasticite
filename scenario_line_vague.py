@@ -12,7 +12,6 @@ def make_vague():
     mc.N_X, mc.N_Y, mc.N_frame = 128, 32, 256
 
     fx, fy, ft = mc.get_grids(mc.N_X, mc.N_Y, mc.N_frame)
-    vext = '.webm'
     theta, B_theta, B_wave = 0., np.pi/16., .1
     alpha, sf_0, B_sf, B_V = 2., .25, .3, 2.
     seed = 1234565
@@ -87,7 +86,7 @@ if __name__ == "__main__":
     vague_dense, vague_solo = make_vague()
 
     e = EdgeGrid(N_lame=25, grid_type='line', mode=mode,
-                 verb=True, filename='mat/line_vague_dense.npy', period=20., 
+                 verb=True, period=20., # filename='mat/line_vague_dense.npy', 
                  vague = vague_dense,
                  x_offset=0, y_offset=0, t_offset=0, N_steps=512)
 
@@ -95,7 +94,7 @@ if __name__ == "__main__":
     el.main(e)
 
     e = EdgeGrid(N_lame=25, grid_type='line', mode=mode,
-                 verb=True, period=20., #filename='mat/line_vague.npy', 
+                 verb=True, period=20., #filename='mat/line_vague_solo.npy', 
                  vague = vague_solo,
                  x_offset=vague_solo.shape[0]//2-25//2, y_offset=vague_solo.shape[1]//2, 
                  t_offset=vague_solo.shape[-1]*3//8, N_steps=vague_solo.shape[-1]//4)
