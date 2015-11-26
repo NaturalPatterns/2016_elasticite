@@ -439,19 +439,18 @@ class EdgeGrid():
         inches_per_pt = 1.0/72.27
         from moviepy.video.io.bindings import mplfig_to_npimage
         import moviepy.editor as mpy
-        if not os.path.isfile(fname):
-            def make_frame_mpl(t):
-                self.t = t
-                self.update()
-                fig = plt.figure(figsize=(W*inches_per_pt, H*inches_per_pt))
-                fig, ax = self.plot_structure(fig=fig, ax=None, scale=scale)
-                #ax.clear()
-                ax.axis('off')
-                #fig, ax = self.plot_structure(fig=fig, ax=ax)
-                return mplfig_to_npimage(fig) # RGB image of the figure
+        def make_frame_mpl(t):
+            self.t = t
+            self.update()
+            fig = plt.figure(figsize=(W*inches_per_pt, H*inches_per_pt))
+            fig, ax = self.plot_structure(fig=fig, ax=None, scale=scale)
+            #ax.clear()
+            ax.axis('off')
+            #fig, ax = self.plot_structure(fig=fig, ax=ax)
+            return mplfig_to_npimage(fig) # RGB image of the figure
 
-            animation = mpy.VideoClip(make_frame_mpl, duration=duration)
-            plt.close('all')
+        animation = mpy.VideoClip(make_frame_mpl, duration=duration)
+        plt.close('all')
         animation.write_videofile(fname, fps=fps)
         return mpy.ipython_display(fname, fps=fps, loop=1, autoplay=1, width=W)
 
