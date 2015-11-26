@@ -96,7 +96,7 @@ class EdgeGrid():
         # demultiplication : pignon1= 14 dents, pignon2 = 60 dents
         self.n_pas = 200. * 32. * 60 / 14
         # TODO : Vitesse Max moteur = 1 tour en 3,88
-        self.n_pas_max = 150
+        self.n_pas_max = 140
 
         # taille installation
         self.total_width = 8 # en mètres
