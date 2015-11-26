@@ -119,6 +119,9 @@ class EdgeGrid():
 
         # enregistrement / playback
         self.period = period
+        self.load()
+
+    def load(self):
         if not self.filename is None:
             if os.path.isfile(self.filename):
             # le fichier existe, on charge
@@ -622,10 +625,10 @@ try:
 
 
             if self.first_frame:
-                print(self.e.t0, self.e.t)
+#                 print(self.e.t0, self.e.t)
                 self.e.t0 = time.time()
                 self.e.t = self.e.time()
-                print(self.e.t0, self.e.t)
+#                 print(self.e.t0, self.e.t)
                 self.first_frame = False
 
             dt = self.e.time() - self.e.t
@@ -734,6 +737,7 @@ def writer(e, force=False):
 
 def client(e):
     writer(e)
+    e.load()
     if e.stream:
         import zmq
         context = zmq.Context()
