@@ -11,7 +11,7 @@ def master(e, filename):
 
     def montage(z, z_in):
         z_in[:, 0] += z[-1, 0] + e.desired_fps # increment the time on the new array
-        print (z.shape, z_in.shape)
+        print (z.shape, z_in.shape, z_in[0, 0], z_in[-1, 0])
         return np.vstack((z, z_in))
 
     burnout_time = 4.

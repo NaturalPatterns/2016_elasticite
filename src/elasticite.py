@@ -722,10 +722,9 @@ def writer(e, force=False):
         if not os.path.isfile(e.filename) or force:
             if e.structure: N_lame = e.N_lame-e.struct_N
             else: N_lame = e.N_lame
-            self.z = np.zeros((0, N_lame+1))
+            e.z = np.zeros((0, N_lame+1))
             for t in np.arange(0., e.period, 1./e.desired_fps):
-                print (t)
-                dt = e.desired_fps
+                e.dt = 1./e.desired_fps
                 e.t = t
                 e.update()
                 if e.verb: print("recording at t=", e.t)
