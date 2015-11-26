@@ -706,7 +706,10 @@ def serial(e):
             # if e.verb: print('@', e.t, convert(dnbpas), '-fps=', 1./e.dt)
             if e.verb: print('@', e.t, '-fps=', 1./e.dt)
             #ser.write(convert(dnbpas))
-            for i, increment in enumerate(dnbpas): ser.write(message(i, increment))
+            for i, increment in enumerate(dnbpas): 
+		msg = message(i, increment)
+		ser.write(msg)
+                if e.verb and i==0: print (msg)
             dt = e.time() - e.t
             if 1./e.desired_fps - dt>0.: time.sleep(1./e.desired_fps - dt)
 
