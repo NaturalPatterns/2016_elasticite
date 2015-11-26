@@ -77,7 +77,7 @@ class EdgeGrid(el.EdgeGrid):
         dsurface = np.gradient(surface)
         print(dsurface.mean(), dsurface.max(), damp(self.t))
         dsurface /= np.abs(dsurface).max()
-        dsurface *= np.arctan(np.pi/4*damp(self.t)) # maximum angle achieved
+        dsurface *= np.arctan(np.pi/16*damp(self.t)) # maximum angle achieved
         self.lames[2, :N_lame] = np.tan(dsurface)
         
 if __name__ == "__main__":
