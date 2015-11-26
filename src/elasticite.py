@@ -85,7 +85,7 @@ class EdgeGrid():
         self.serial =  (mode=='serial') # converting a stream to the serial port to control the arduino
         if self.serial: self.verb=True
 #         self.desired_fps = 750.
-        self.desired_fps = 60.
+        self.desired_fps = 30.
         self.structure = structure
         self.screenshot = True # saves a screenshot after the rendering
 
@@ -357,11 +357,11 @@ class EdgeGrid():
             self.update()
             self.t = self.time()
 
-        if not self.filename is None:
-            if not os.path.isfile(self.filename):
-                # recording
-                if self.verb: print("recording at t=", self.t)
-                self.z = np.vstack((self.z, np.hstack((np.array(self.t), self.lames[2, :] ))))
+#         if not self.filename is None:
+#             if not os.path.isfile(self.filename):
+#                 # recording
+#                 if self.verb: print("recording at t=", self.t)
+#                 self.z = np.vstack((self.z, np.hstack((np.array(self.t), self.lames[2, :] ))))
         return
 
     def render(self, fps=10, W=1000, H=618, location=[0, 1.75, -5], head_size=.4, light_intensity=1.2, reflection=1., 
@@ -716,7 +716,23 @@ def serial(e):
             dt = e.time() - e.t
             if 1./e.desired_fps - dt>0.: time.sleep(1./e.desired_fps - dt)
 
+
+def writer(e, force=False):
+    if not e.filename is None:
+        if not os.path.isfile(e.filename) or force:
+
+            for t in np.arange(0., e.period, 1./e.desired_fps):
+                print (t)
+                dt = e.desired_fps
+                e.t = t
+                e.update()
+                if e.verb: print("recording at t=", e.t)
+                e.z = np.vstack((e.z, np.hstack((np.array(e.t), e.lames[2, :] ))))
+            # save the file
+            np.save(e.filename, e.z)
+
 def client(e):
+    writer(e)
     if e.stream:
         import zmq
         context = zmq.Context()
@@ -744,27 +760,22 @@ def client(e):
     pyglet.clock.schedule(callback)
 #     window.e.t0 = window.e.time(init=True)
     pyglet.app.run()
-    if not e.filename is None:
-        if not os.path.isfile(e.filename):
-            # save the file
-            np.save(e.filename, e.z)
     if e.screenshot: pyglet.image.get_buffer_manager().get_color_buffer().save('screenshot.png')
 
 def main(e):
-#     print(e.display, e.stream)
-    # Now we can run the server
     if e.display:
         # Now we can connect a client to the server
-        #Process(target=client, args=(e,)).start()
         client(e)
 
     elif e.stream:
-        #Process(target=server, args=(e,)).start()
+        # Now we can run the server
         server(e)
 
     elif e.serial:
-        #Process(target=server, args=(e,)).start()
         serial(e)
+
+    else:
+        writer(e, force=True)
 
 if __name__ == '__main__':
     e = EdgeGrid()
