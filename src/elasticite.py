@@ -716,7 +716,7 @@ def serial(e):
             if e.verb: print('@', e.t, '-fps=', 1./e.dt)
             #ser.write(convert(dnbpas))
             for i, increment in enumerate(dnbpas):
-                if np.abs(increment) > self.n_pas_max:
+                if np.abs(increment) > e.n_pas_max:
                     print('!! /Z\ !! @ ', e.t, ' overflow @ ', i, increment)
                 msg = message(i, increment)
                 ser.write(msg)
