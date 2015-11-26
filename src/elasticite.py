@@ -124,10 +124,6 @@ class EdgeGrid():
             # le fichier existe, on charge
                 self.z = np.load(self.filename)
                 self.period = self.z[:, 0].max()
-            else: # on enregistre
-                if self.structure: N_lame = self.N_lame-self.struct_N
-                else: N_lame = self.N_lame
-                self.z = np.zeros((0, N_lame+1))
 
     def time(self, init=False):
         if init: return time.time()
@@ -726,6 +722,7 @@ def writer(e, force=False):
         if not os.path.isfile(e.filename) or force:
             if e.structure: N_lame = e.N_lame-e.struct_N
             else: N_lame = e.N_lame
+            self.z = np.zeros((0, N_lame+1))
             for t in np.arange(0., e.period, 1./e.desired_fps):
                 print (t)
                 dt = e.desired_fps
