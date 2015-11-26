@@ -50,7 +50,8 @@ if __name__ == "__main__":
     e = el.EdgeGrid(N_lame=25, grid_type='line', mode=mode,
                  verb=True, filename=filename)
 
-    master(e, filename)
-
-    # running the code
-    # el.main(e)
+    if mode == 'writer':
+        master(e, filename)
+    else:
+        # running the code
+        el.main(e)
