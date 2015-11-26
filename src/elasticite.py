@@ -711,6 +711,9 @@ def serial(e):
             e.receive()
             nbpas = [int(theta/2/np.pi*e.n_pas) for theta in e.lames[2, :N_lame]]
             dnbpas =  nbpas - nbpas_old
+            # HACK : écrétage pour éviter un overflow
+            dnbpas = np.min(dnbpas, e.n_pas_max)
+            dnbpas = np.max(dnbpas, -e.n_pas_max)
             nbpas_old = nbpas_old + dnbpas
             # if e.verb: print('@', e.t, convert(dnbpas), '-fps=', 1./e.dt)
             if e.verb: print('@', e.t, '-fps=', 1./e.dt)
