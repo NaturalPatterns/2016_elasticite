@@ -37,7 +37,7 @@ if __name__ == "__main__":
     import sys
     if len(sys.argv)>1: mode = sys.argv[1]
     else: mode = 'both'
-    filename = '/tmp/line_fresnelastique.npy'
     filename = None
-    e = EdgeGrid(N_lame=25, grid_type='line', mode=mode, verb=False, filename=filename, period=10)
+    filename = 'mat/line_fresnelastique.npy'
+    e = EdgeGrid(N_lame=25, grid_type='line', mode=mode, verb=False, filename=filename, period=30)
     el.main(e)

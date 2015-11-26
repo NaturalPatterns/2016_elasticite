@@ -125,7 +125,9 @@ class EdgeGrid():
                 self.z = np.load(self.filename)
                 self.period = self.z[:, 0].max()
             else: # on enregistre
-                self.z = np.zeros((0, self.N_lame+1))
+                if self.structure: N_lame = self.N_lame-self.struct_N
+                else: N_lame = self.N_lame
+                self.z = np.zeros((0, N_lame+1))
 
     def time(self, init=False):
         if init: return time.time()
@@ -340,10 +342,12 @@ class EdgeGrid():
     def receive(self):
         if not self.filename is None:
             if os.path.isfile(self.filename):
+                if self.structure: N_lame = self.N_lame-self.struct_N
+                else: N_lame = self.N_lame
                 self.t = self.time()
                 i_t = np.argmin(self.z[:, 0] < np.mod(self.t, self.period))
                 if self.verb: print("playback at t=", self.t, i_t)
-                self.lames[2, :] =  self.z[i_t, 1:]
+                self.lames[2, :N_lame] =  self.z[i_t, 1:]
                 return
 
         if self.stream:
@@ -720,14 +724,15 @@ def serial(e):
 def writer(e, force=False):
     if not e.filename is None:
         if not os.path.isfile(e.filename) or force:
-
+            if e.structure: N_lame = e.N_lame-e.struct_N
+            else: N_lame = e.N_lame
             for t in np.arange(0., e.period, 1./e.desired_fps):
                 print (t)
                 dt = e.desired_fps
                 e.t = t
                 e.update()
                 if e.verb: print("recording at t=", e.t)
-                e.z = np.vstack((e.z, np.hstack((np.array(e.t), e.lames[2, :] ))))
+                e.z = np.vstack((e.z, np.hstack((np.array(e.t), e.lames[2, :N_lame] ))))
             # save the file
             np.save(e.filename, e.z)
 
