@@ -96,6 +96,7 @@ class EdgeGrid():
         # demultiplication : pignon1= 14 dents, pignon2 = 60 dents
         self.n_pas = 200. * 32. * 60 / 14
         # TODO : Vitesse Max moteur = 1 tour en 3,88
+        self.n_pas_max = 150
 
         # taille installation
         self.total_width = 8 # en mètres
@@ -715,6 +716,8 @@ def serial(e):
             if e.verb: print('@', e.t, '-fps=', 1./e.dt)
             #ser.write(convert(dnbpas))
             for i, increment in enumerate(dnbpas):
+                if np.abs(increment) > self.n_pas_max:
+                    print('!! /Z\ !! @ ', e.t, ' overflow @ ', i, increment)
                 msg = message(i, increment)
                 ser.write(msg)
                 # if e.verb and i==0: print (msg)
