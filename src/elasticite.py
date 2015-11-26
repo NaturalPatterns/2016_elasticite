@@ -345,7 +345,7 @@ class EdgeGrid():
                 else: N_lame = self.N_lame
                 self.t = self.time()
                 i_t = np.argmin(self.z[:, 0] < np.mod(self.t, self.period))
-                if self.verb: print("playback at t=", self.t, i_t)
+                if self.verb: print("playback at t=", np.mod(self.t, self.period), i_t)
                 self.lames[2, :N_lame] =  self.z[i_t, 1:]
                 return
 
