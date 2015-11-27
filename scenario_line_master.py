@@ -28,13 +28,13 @@ def master(e, filename):
     z = np.vstack((z, np.hstack((np.array(burnout_time), np.zeros(N_lame) ))))
     for _ in range(36):
         ###########################################################################
-        #z = montage(z, z_s['line_vague_dense'])
+        z = montage(z, z_s['line_vague_dense'])
         ###########################################################################
         z = montage(z, z_s['line_vague_solo'])
         ###########################################################################
-        #z = montage(z, z_s['line_fresnelastique'])
+        z = montage(z, z_s['line_fresnelastique'])
         ###########################################################################
-        #z = montage(z, z_s['line_vague_dense'])
+        z = montage(z, z_s['line_vague_dense'])
     
     ###########################################################################
     # save the file
