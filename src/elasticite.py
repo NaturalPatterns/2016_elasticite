@@ -715,7 +715,7 @@ def serial(e):
             dnbpas = e.n_pas_max * np.tanh(dnbpas/e.n_pas_max)
             # on convertit en int
             dnbpas = dnbpas.astype(np.int)
-            print(e.lames[2, :N_lame], angle_desire, angle_actuel, dnbpas)
+            # print(e.lames[2, :N_lame], angle_desire, angle_actuel, dnbpas)
             angle_actuel = angle_actuel + dnbpas
             # if e.verb: print('@', e.t, convert(dnbpas), '-fps=', 1./e.dt)
             if e.verb: print('@', e.t, '-fps=', 1./e.dt)
