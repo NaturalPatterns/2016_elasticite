@@ -685,13 +685,7 @@ def server(e):
 
 def serial(e):
     e.load()
-    try:
-        import serial
-        SERIAL = True
-        serial_to_raspberry = serial.Serial(e.serial_port, e.baud_rate)
-    except:
-        SERIAL = False
-        serial_to_raspberry = 'demo'
+    import serial
     alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
 
     def message(i, increment):
@@ -704,7 +698,7 @@ def serial(e):
             msg += message(i, increment)
         return msg
 
-    with serial_to_raspberry as ser:
+    with serial.Serial(e.serial_port, e.baud_rate) as ser:
         if e.structure: N_lame = e.N_lame-e.struct_N
         else: N_lame = e.N_lame
         if e.verb: print("Running serial on port: ", e.serial_port)

@@ -39,5 +39,7 @@ if __name__ == "__main__":
     else: mode = 'both'
     filename = None
     filename = 'mat/line_fresnelastique.npy'
-    e = EdgeGrid(N_lame=25, grid_type='line', mode=mode, verb=False, filename=filename, period=30)
+    e = EdgeGrid(N_lame=25, grid_type='line', mode=mode, verb=False, filename=filename, period=60.)
     el.main(e)
+
+    
