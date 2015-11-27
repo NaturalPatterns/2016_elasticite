@@ -14,7 +14,7 @@ class EdgeGrid(el.EdgeGrid):
     def update(self):
         if self.structure: N_lame = self.N_lame-self.struct_N
         else: N_lame = self.N_lame
-        self.lames[2, :N_lame] = 45.* np.pi/180. * np.sin(2*np.pi*(self.t)/self.period)
+        self.lames[2, :N_lame] = 90.* np.pi/180. * np.sin(2*np.pi*(self.t)/self.period)
 
 if __name__ == "__main__":
     import sys
