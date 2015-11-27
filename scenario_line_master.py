@@ -56,7 +56,7 @@ if __name__ == "__main__":
     filename='mat/master.npy'
     
     e = el.EdgeGrid(N_lame=25, grid_type='line', mode=mode,
-                 verb=True, filename=filename)
+                 verb=False, filename=filename)
 
     if mode == 'writer':
         master(e, filename)
