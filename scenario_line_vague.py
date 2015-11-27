@@ -75,7 +75,7 @@ class EdgeGrid(el.EdgeGrid):
         i = np.mod(np.int(self.t/self.period * self.vague.shape[2] / N_periods), self.vague.shape[2])
         surface = self.vague[self.x_offset:(self.x_offset+N_lame), self.y_offset, self.t_offset+i]
         dsurface = np.gradient(surface)
-        print(dsurface.mean(), dsurface.max(), damp(self.t))
+        #print(dsurface.mean(), dsurface.max(), damp(self.t))
         dsurface /= np.abs(dsurface).max()
         dsurface *= np.tan(np.pi/8) # maximum angle achieved
         self.lames[2, :N_lame] = np.arctan(dsurface)*damp(self.t)
