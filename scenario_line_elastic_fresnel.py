@@ -20,7 +20,7 @@ class EdgeGrid(el.EdgeGrid):
 
         force = np.zeros_like(self.lames[2, :N_lame])
         damp_min = 0.01
-        damp_tau = 1.5
+        damp_tau = 5.
         damp = lambda t: damp_min + (1.-damp_min)*np.exp(-np.abs(np.mod(t+self.period/2, self.period)-self.period/2)/damp_tau)
         xf = lambda t: location[0]
         zf = lambda t: location[2] + 3.5 * np.sin(2*np.pi*(t)/self.period)
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     else: mode = 'both'
     filename = None
     filename = 'mat/line_fresnelastique.npy'
-    e = EdgeGrid(N_lame=25, grid_type='line', mode=mode, verb=False, filename=filename, period=60.)
+    e = EdgeGrid(N_lame=25, grid_type='line', mode=mode, verb=False, filename=filename, period=120.)
     el.main(e)
 
     
