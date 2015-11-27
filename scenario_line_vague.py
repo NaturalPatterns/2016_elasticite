@@ -71,12 +71,17 @@ class EdgeGrid(el.EdgeGrid):
         else: N_lame = self.N_lame
         damp = lambda t: 1. - np.exp(-np.abs(np.mod(t+self.period/2, self.period)-self.period/2)/self.damp_tau)
 
-        N_periods = 4
+        N_periods = 1
         i = np.mod(np.int(self.t/self.period * self.vague.shape[2] / N_periods), self.vague.shape[2])
+        surface = np.zeros_like(self.lames[2, :N_lame])
+        #for k, amp in zip([-2, -1, 0, 1, 2], [.125, .25, .5, .25, .125]):
+        #    surface += amp * self.vague[self.x_offset:(self.x_offset+N_lame), self.y_offset, self.t_offset+i+k]
         surface = self.vague[self.x_offset:(self.x_offset+N_lame), self.y_offset, self.t_offset+i]
+        surface = np.convolve(surface, np.arange(5), mode='same')
         dsurface = np.gradient(surface)
+        dsurface *= np.bartlett(N_lame)
         #print(dsurface.mean(), dsurface.max(), damp(self.t))
-        dsurface /= np.abs(dsurface).max()
+        #dsurface /= np.abs(dsurface).max()
         dsurface *= np.tan(np.pi/8) # maximum angle achieved
         self.lames[2, :N_lame] = np.arctan(dsurface)*damp(self.t)
         
@@ -87,9 +92,9 @@ if __name__ == "__main__":
         
     vague_dense = make_vague(impulse=False)
 
-    period = 20
+    period = 512./30
     e = EdgeGrid(N_lame=25, grid_type='line', mode=mode,
-                 verb=True, period=period, filename='mat/line_vague_dense.npy', 
+                 verb=False, period=period, filename='mat/line_vague_dense.npy', 
                  vague = vague_dense,
                  x_offset=0, y_offset=0, t_offset=0, N_steps=512)
 
