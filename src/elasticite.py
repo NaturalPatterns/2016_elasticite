@@ -336,8 +336,9 @@ class EdgeGrid():
         else: N_lame = self.N_lame
         self.lames[2, :N_lame] += self.lames[3, :N_lame]*self.dt/2
         self.lames[3, :N_lame] += self.champ() * self.dt
+        self.lames[2, :N_lame] += self.lames[3, :N_lame]*self.dt/2
         # angles are defined as non oriented between -pi/2 and pi/2 
-        self.lames[2, :N_lame] = np.mod(self.lames[2, :N_lame] + np.pi/2, np.pi) - np.pi/2   self.lames[2, :N_lame] += self.lames[3, :N_lame]*self.dt/2
+        self.lames[2, :N_lame] = np.mod(self.lames[2, :N_lame] + np.pi/2, np.pi) - np.pi/2  
 
     def receive(self):
         if not self.filename is None:
