@@ -708,8 +708,8 @@ def serial(e):
             #e.update()
             #e.t = e.time()
             e.receive()
-            angle_desire = [int(theta/2/np.pi*e.n_pas) for theta in e.lames[2, :N_lame]]
-            angle_desire = [int(theta/2/np.pi*e.n_pas) for theta in e.lames[2, :N_lame]]
+            #angle_desire = [int(theta/2/np.pi*e.n_pas) for theta in e.lames[2, :N_lame]]
+            angle_desire = theta/2/np.pi*e.n_pas
             dnbpas =  angle_desire - angle_actuel
             # HACK : écrétage pour éviter un overflow
             dnbpas = e.n_pas_max * np.tanh(dnbpas/e.n_pas_max)
