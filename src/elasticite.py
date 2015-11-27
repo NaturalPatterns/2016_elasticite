@@ -6,7 +6,6 @@ import numpy as np
 import time
 
 try:
-
 	#import matplotlib
 	#matplotlib.use("Agg") # agg-backend, so we can create figures without x-server (no PDF, just PNG etc.)
 	import matplotlib.pyplot as plt
@@ -686,7 +685,13 @@ def server(e):
 
 def serial(e):
     e.load()
-    import serial
+    try:
+        import serial
+        SERIAL = True
+        serial_to_raspberry = serial.Serial(e.serial_port, e.baud_rate)
+    except:
+        SERIAL = False
+        serial_to_raspberry = 'demo'
     alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
 
     def message(i, increment):
@@ -699,7 +704,7 @@ def serial(e):
             msg += message(i, increment)
         return msg
 
-    with serial.Serial(e.serial_port, e.baud_rate) as ser:
+    with serial_to_raspberry as ser:
         if e.structure: N_lame = e.N_lame-e.struct_N
         else: N_lame = e.N_lame
         if e.verb: print("Running serial on port: ", e.serial_port)
