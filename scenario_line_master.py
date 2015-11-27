@@ -36,16 +36,18 @@ def master(e, filename):
     matpath = 'mat/'
     z_s = {}
     for scenario in ['line_vague_dense', 'line_vague_solo', 'line_fresnelastique',
-                    'line_fresnelastique_choc', 'line_fresnelastique_chirp']:
+                    'line_fresnelastique_choc', 'line_fresnelastique_chirp', 'line_geometry']:
         z_s[scenario] = np.load(os.path.join(matpath, scenario + '.npy'))
     
     ###########################################################################
     burnout_time = 4.
     z = np.zeros((1, N_lame+1)) # zero at zero
     z = np.vstack((z, np.hstack((np.array(burnout_time), np.zeros(N_lame) ))))
-    for _ in range(9):
+    for _ in range(3):
         ###########################################################################
         z = montage(z, z_s['line_vague_dense'])
+        ###########################################################################
+        z = montage(z, z_s['line_geometry'])
         ###########################################################################
         z = montage(z, z_s['line_vague_solo'])
         z = montage(z, revert(z_s['line_vague_solo']))
