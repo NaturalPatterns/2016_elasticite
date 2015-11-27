@@ -702,18 +702,20 @@ def serial(e):
         if e.structure: N_lame = e.N_lame-e.struct_N
         else: N_lame = e.N_lame
         if e.verb: print("Running serial on port: ", e.serial_port)
-        nbpas_old = np.zeros_like(e.lames[2, :N_lame], dtype=np.int)
+        angle_actuel = np.zeros_like(e.lames[2, :N_lame], dtype=np.int)
         while True:
             #e.dt = e.time() - e.t
             #e.update()
             #e.t = e.time()
             e.receive()
-            nbpas = [int(theta/2/np.pi*e.n_pas) for theta in e.lames[2, :N_lame]]
-            print(e.lames[2, :N_lame], nbpas)
+            angle_desire = [int(theta/2/np.pi*e.n_pas) for theta in e.lames[2, :N_lame]]
+            dnbpas =  nbpas - angle_actuel
             # HACK : écrétage pour éviter un overflow
             dnbpas = e.n_pas_max * np.tanh(dnbpas/e.n_pas_max)
-            dnbpas =  nbpas - nbpas_old
-            nbpas_old = nbpas_old + dnbpas
+            # on convertit en int
+            dnbpas = dnbpas.astype(np.int)
+            print(e.lames[2, :N_lame], angle_desire, angle_actuel, dnbpas)
+            angle_actuel = angle_actuel + dnbpas
             # if e.verb: print('@', e.t, convert(dnbpas), '-fps=', 1./e.dt)
             if e.verb: print('@', e.t, '-fps=', 1./e.dt)
             #ser.write(convert(dnbpas))
