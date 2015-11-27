@@ -336,7 +336,8 @@ class EdgeGrid():
         else: N_lame = self.N_lame
         self.lames[2, :N_lame] += self.lames[3, :N_lame]*self.dt/2
         self.lames[3, :N_lame] += self.champ() * self.dt
-        self.lames[2, :N_lame] += self.lames[3, :N_lame]*self.dt/2
+        # angles are defined as non oriented between -pi/2 and pi/2 
+        self.lames[2, :N_lame] = np.mod(self.lames[2, :N_lame] + np.pi/2, np.pi) - np.pi/2   self.lames[2, :N_lame] += self.lames[3, :N_lame]*self.dt/2
 
     def receive(self):
         if not self.filename is None:
@@ -709,14 +710,15 @@ def serial(e):
             #e.t = e.time()
             e.receive()
             #angle_desire = [int(theta/2/np.pi*e.n_pas) for theta in e.lames[2, :N_lame]]
-            angle_desire = theta/2/np.pi*e.n_pas
-            dnbpas =  angle_desire - angle_actuel
+            angle_desire = e.lames[2, :N_lame]
+            dnbpas =  (angle_desire - angle_actuel)/2/np.pi*e.n_pas
             # HACK : écrétage pour éviter un overflow
             dnbpas = e.n_pas_max * np.tanh(dnbpas/e.n_pas_max)
             # on convertit en int
             dnbpas = dnbpas.astype(np.int)
             # print(e.lames[2, :N_lame], angle_desire, angle_actuel, dnbpas)
-            angle_actuel = angle_actuel + dnbpas
+            angle_actuel = angle_actuel + dnbpas*2*np.pi/e.n_pas
+            angle_actuel = np.mod(angle_actuel + np.pi/2, np.pi) - np.pi/2
             # if e.verb: print('@', e.t, convert(dnbpas), '-fps=', 1./e.dt)
             if e.verb: print('@', e.t, '-fps=', 1./e.dt)
             #ser.write(convert(dnbpas))
