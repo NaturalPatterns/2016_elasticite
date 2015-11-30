@@ -52,6 +52,7 @@ def master(e, filename):
         ###########################################################################
         z = montage(z, z_s['line_onde_solo'])
         z = montage(z, revert(z_s['line_onde_solo']))
+        z = montage(z, revert(z_s['line_onde_dense']))
         ###########################################################################
         z = montage(z, z_s['line_fresnelastique'])
         z = montage(z, mirror(z_s['line_fresnelastique']))
