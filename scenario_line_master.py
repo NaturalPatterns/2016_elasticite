@@ -43,37 +43,39 @@ def master(e, filename):
     z_s = {}
     for scenario in ['line_vague_dense', 'line_vague_solo', 
                      'line_onde_dense', 'line_onde_solo', 'line_fresnelastique',
-                    'line_fresnelastique_choc', 'line_fresnelastique_chirp', 'line_geometry']:
+                    'line_fresnelastique_choc', 'line_fresnelastique_chirp', 
+                     'line_geometry', 'line_geometry_45deg']:
         z_s[scenario] = np.load(os.path.join(matpath, scenario + '.npy'))
     
     ###########################################################################
     burnout_time = 4.
     z = np.zeros((1, N_lame+1)) # zero at zero
     z = np.vstack((z, np.hstack((np.array(burnout_time), np.zeros(N_lame) ))))
-    for _ in range(3):
-        ###########################################################################
-        z = montage(z, z_s['line_onde_dense'])
-        ###########################################################################
-        z = montage(z, z_s['line_geometry'])
-        ###########################################################################
-        z = montage(z, z_s['line_onde_solo'])
-        z = montage(z, revert(z_s['line_onde_solo']))
-        z = montage(z, revert(z_s['line_onde_dense']))
-        ###########################################################################
-        z = montage(z, z_s['line_geometry'])
-        z = montage(z, z_s['line_fresnelastique'])
-        z = montage(z, mirror(z_s['line_fresnelastique']))
-        z = montage(z, z_s['line_fresnelastique_chirp'])
-        z = montage(z, z_s['line_fresnelastique_choc'])
-        z = montage(z, z_s['line_geometry'])
-        ###########################################################################
-        z = montage(z, z_s['line_fresnelastique'])
-        z = montage(z, interleave(z_s['line_fresnelastique'], mirror(z_s['line_fresnelastique'])))
-        z = montage(z, interleave(z_s['line_fresnelastique_chirp'], mirror(z_s['line_fresnelastique_choc'])))
-        z = montage(z, interleave(z_s['line_fresnelastique_choc'], mirror(z_s['line_fresnelastique_chirp'])))
-        ###########################################################################
-        z = montage(z, z_s['line_geometry'])
-        z = montage(z, z_s['line_onde_dense'])
+    ###########################################################################
+    z = montage(z, z_s['line_onde_dense'])
+    ###########################################################################
+    z = montage(z, z_s['line_geometry_45deg'])
+    z = montage(z, z_s['line_geometry'])
+    z = montage(z, mirror(z_s['line_geometry_45deg']))
+    ###########################################################################
+    z = montage(z, z_s['line_onde_solo'])
+    z = montage(z, revert(z_s['line_onde_solo']))
+    z = montage(z, revert(z_s['line_onde_dense']))
+    ###########################################################################
+    z = montage(z, z_s['line_geometry'])
+    z = montage(z, z_s['line_fresnelastique'])
+    z = montage(z, mirror(z_s['line_fresnelastique']))
+    z = montage(z, z_s['line_fresnelastique_chirp'])
+    z = montage(z, z_s['line_fresnelastique_choc'])
+    z = montage(z, z_s['line_geometry'])
+    ###########################################################################
+    z = montage(z, z_s['line_fresnelastique'])
+    z = montage(z, interleave(z_s['line_fresnelastique'], mirror(z_s['line_fresnelastique'])))
+    z = montage(z, interleave(z_s['line_fresnelastique_chirp'], mirror(z_s['line_fresnelastique_choc'])))
+    z = montage(z, interleave(z_s['line_fresnelastique_choc'], mirror(z_s['line_fresnelastique_chirp'])))
+    ###########################################################################
+    z = montage(z, z_s['line_geometry'])
+    z = montage(z, z_s['line_onde_dense'])
     
     ###########################################################################
     # save the file
@@ -86,8 +88,7 @@ if __name__ == "__main__":
     if len(sys.argv)>1: mode = sys.argv[1]
     else: mode = 'both'
         
-    filename='mat/master.npy'
-    
+    filename = 'mat/master.npy'
     e = el.EdgeGrid(N_lame=25, grid_type='line', mode=mode,
                  verb=False, filename=filename)
 
