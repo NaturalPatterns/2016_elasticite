@@ -639,6 +639,7 @@ try:
             self.e.receive()
             X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], self.e.lames[2, :]
             dX, dY = np.cos(Theta)/2., np.sin(Theta)/2.
+            #print(Theta)
             # coords = np.vstack((X-dX*self.e.lame_length, Y-dY*self.e.lame_length, X+dX*self.e.lame_length, Y+dY*self.e.lame_length))
             coords = np.vstack((
                                 X-dX*self.e.lame_length+dY*self.e.lame_width, Y-dY*self.e.lame_length-dX*self.e.lame_width,

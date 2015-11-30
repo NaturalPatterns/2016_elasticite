@@ -9,9 +9,15 @@ def master(e, filename):
     if e.structure: N_lame = e.N_lame-e.struct_N
     else: N_lame = e.N_lame
 
-    def montage(z, z_in):
+    def montage(z, z_in, damp_tau=60.):
         z_out = z.copy()
         z_s = z_in.copy()
+        if damp_tau>0:
+            max_time = z_in.shape[0]/e.desired_fps
+            time = np.linspace(0., max_time, z_in.shape[0])
+            smooth = 1.-np.exp((np.cos(2*np.pi* time / max_time)-1)/(damp_tau / max_time)**2)
+            z_s[:, 1:] *= smooth[:, np.newaxis]
+
         #print (z_out[0, 0], z_out[-1, 0], z_s[0, 0], z_s[-1, 0])
         z_s[:, 0] += z_out[-1, 0] #+ 1./e.desired_fps # increment the time on the new array
         #print (z_out.shape, z_s.shape, z_s[0, 0], z_s[-1, 0])
@@ -48,29 +54,32 @@ def master(e, filename):
         ###########################################################################
         z = montage(z, z_s['line_onde_dense'])
         ###########################################################################
-        #z = montage(z, z_s['line_geometry'])
+        z = montage(z, z_s['line_geometry'])
         ###########################################################################
         z = montage(z, z_s['line_onde_solo'])
         z = montage(z, revert(z_s['line_onde_solo']))
         z = montage(z, revert(z_s['line_onde_dense']))
         ###########################################################################
+        z = montage(z, z_s['line_geometry'])
         z = montage(z, z_s['line_fresnelastique'])
         z = montage(z, mirror(z_s['line_fresnelastique']))
         z = montage(z, z_s['line_fresnelastique_chirp'])
         z = montage(z, z_s['line_fresnelastique_choc'])
+        z = montage(z, z_s['line_geometry'])
         ###########################################################################
         z = montage(z, z_s['line_fresnelastique'])
         z = montage(z, interleave(z_s['line_fresnelastique'], mirror(z_s['line_fresnelastique'])))
         z = montage(z, interleave(z_s['line_fresnelastique_chirp'], mirror(z_s['line_fresnelastique_choc'])))
         z = montage(z, interleave(z_s['line_fresnelastique_choc'], mirror(z_s['line_fresnelastique_chirp'])))
         ###########################################################################
+        z = montage(z, z_s['line_geometry'])
         z = montage(z, z_s['line_onde_dense'])
     
     ###########################################################################
     # save the file
     np.save(filename, z)
 
-        
+    return z_s
 
 if __name__ == "__main__":
     import sys
@@ -83,7 +92,7 @@ if __name__ == "__main__":
                  verb=False, filename=filename)
 
     if mode == 'writer':
-        master(e, filename)
+        z_s = master(e, filename)
     else:
         # running the code
         el.main(e)
