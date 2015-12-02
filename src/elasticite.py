@@ -6,7 +6,6 @@ import numpy as np
 import time
 
 try:
-
 	#import matplotlib
 	#matplotlib.use("Agg") # agg-backend, so we can create figures without x-server (no PDF, just PNG etc.)
 	import matplotlib.pyplot as plt
@@ -70,7 +69,9 @@ class EdgeGrid():
                  structure = True, struct_angles = [-15., -65., -102.],
                  verb = False,
                  mode = 'both',
-                 filename = None
+                 filename = None,
+                 period = None,
+                 **kw_args
                  ):
         self.t0 = self.time(True)
         self.t = self.time()
@@ -82,8 +83,8 @@ class EdgeGrid():
         self.filename = filename
         self.serial =  (mode=='serial') # converting a stream to the serial port to control the arduino
         if self.serial: self.verb=True
-        self.desired_fps = 750.
-#         self.desired_fps = 30.
+#         self.desired_fps = 750.
+        self.desired_fps = 30.
         self.structure = structure
         self.screenshot = True # saves a screenshot after the rendering
 
@@ -94,10 +95,11 @@ class EdgeGrid():
         # demultiplication : pignon1= 14 dents, pignon2 = 60 dents
         self.n_pas = 200. * 32. * 60 / 14
         # TODO : Vitesse Max moteur = 1 tour en 3,88
+        self.n_pas_max = 140
 
         # taille installation
-        self.total_width = 8 # en mètres        
-        self.lames_width = 5 # en mètres        
+        self.total_width = 8 # en mètres
+        self.lames_width = 5 # en mètres
         self.lames_height = 3 # en mètres
         self.background_depth = 100 # taille du 104 en profondeur
         self.f = .1
@@ -114,11 +116,22 @@ class EdgeGrid():
         self.N_particles_per_lame = 2**3
         self.N_particles = self.struct_N * self.N_particles_per_lame
         if structure: self.sample_structure()
-        
+
+        # enregistrement / playback
+        self.period = period
+        self.load()
+
+    def load(self):
+        if not self.filename is None:
+            if os.path.isfile(self.filename):
+            # le fichier existe, on charge
+                self.z = np.load(self.filename)
+                self.period = self.z[:, 0].max()
+
     def time(self, init=False):
         if init: return time.time()
         else: return time.time() - self.t0
-        
+
     def grid(self, N_lame, N_lame_X):
         """
         The coordinates of the screen are centered on the (0, 0) point and axis are the classical convention:
@@ -324,7 +337,38 @@ class EdgeGrid():
         self.lames[2, :N_lame] += self.lames[3, :N_lame]*self.dt/2
         self.lames[3, :N_lame] += self.champ() * self.dt
         self.lames[2, :N_lame] += self.lames[3, :N_lame]*self.dt/2
-        
+        # angles are defined as non oriented between -pi/2 and pi/2 
+        self.lames[2, :N_lame] = np.mod(self.lames[2, :N_lame] + np.pi/2, np.pi) - np.pi/2  
+
+    def receive(self):
+        if not self.filename is None:
+            if os.path.isfile(self.filename):
+                if self.structure: N_lame = self.N_lame-self.struct_N
+                else: N_lame = self.N_lame
+                self.t = self.time()
+                i_t = np.argmin(self.z[:, 0] < np.mod(self.t, self.period))
+                if self.verb: print("playback at t=", np.mod(self.t, self.period), i_t)
+                self.lames[2, :N_lame] =  self.z[i_t, 1:]
+                return
+
+        if self.stream:
+            if self.verb: print("Sending request")
+            self.socket.send (b"Hello")
+            if self.verb: print( "Received reply ", message)
+            self.lames[2, :] = recv_array(self.socket)
+            if self.verb: print("Received reply ", Theta.shape)
+        else:
+            self.dt = self.time() - self.t
+            self.update()
+            self.t = self.time()
+
+#         if not self.filename is None:
+#             if not os.path.isfile(self.filename):
+#                 # recording
+#                 if self.verb: print("recording at t=", self.t)
+#                 self.z = np.vstack((self.z, np.hstack((np.array(self.t), self.lames[2, :] ))))
+        return
+
     def render(self, fps=10, W=1000, H=618, location=[0, 1.75, -5], head_size=.4, light_intensity=1.2, reflection=1., 
                look_at=[0, 1.5, 0], fov=75, antialiasing=0.001, duration=5, fname='/tmp/temp.webm'):
 
@@ -393,29 +437,29 @@ class EdgeGrid():
         return fig, ax
     
     def animate(self, fps=10, W=1000, H=618, duration=20, scale='auto', fname=None):
+        if fname is None:
+            import tempfile
+            fname = tempfile.mktemp() + '.webm'
         import matplotlib.pyplot as plt
         self.dt = 1./fps
         inches_per_pt = 1.0/72.27
         from moviepy.video.io.bindings import mplfig_to_npimage
         import moviepy.editor as mpy
-        if not os.path.isfile(fname):
-            def make_frame_mpl(t):
-                self.t = t
-                self.update()
-                fig = plt.figure(figsize=(W*inches_per_pt, H*inches_per_pt))
-                fig, ax = self.plot_structure(fig=fig, ax=None, scale=scale)
-                #ax.clear()
-                ax.axis('off')
-                #fig, ax = self.plot_structure(fig=fig, ax=ax)
-                return mplfig_to_npimage(fig) # RGB image of the figure
+        def make_frame_mpl(t):
+            self.t = t
+            self.update()
+            fig = plt.figure(figsize=(W*inches_per_pt, H*inches_per_pt))
+            fig, ax = self.plot_structure(fig=fig, ax=None, scale=scale)
+            #ax.clear()
+            ax.axis('off')
+            #fig, ax = self.plot_structure(fig=fig, ax=ax)
+            return mplfig_to_npimage(fig) # RGB image of the figure
 
-            animation = mpy.VideoClip(make_frame_mpl, duration=duration)
-            plt.close('all')
-        if fname is None:
-            import tempfile
-            fname = tempfile.mktemp() + '.webm'
+        animation = mpy.VideoClip(make_frame_mpl, duration=duration)
+        plt.close('all')
         animation.write_videofile(fname, fps=fps)
         return mpy.ipython_display(fname, fps=fps, loop=1, autoplay=1, width=W)
+
     #def show_edges(self, fig=None, a=None):
         #self.N_theta = 12
         #self.thetas = np.linspace(0, np.pi, self.N_theta)
@@ -538,12 +582,24 @@ try:
             #super(Window, self).__init__(*args, **kwargs)
             super(Window, self).__init__(config=smoothConfig, *args, **kwargs)
             self.e = e
-            if not self.e.filename is None:
-                if os.path.isfile(self.e.filename):
-                    self.e.z = np.load(self.e.filename)
-                else:
-                    self.e.z = np.zeros((0, self.e.N_lame+1))
-
+            self.first_frame = True
+            self.label = pyglet.text.Label('Hello, world',
+                          #font_name='Times New Roman',
+                          font_size=36, color=(255, 0, 0, 255),
+                            x=self.width / 2,
+                            y=self.height / 2,
+                           anchor_x='center', anchor_y='center')
+            self.fps_label = pyglet.text.Label(text="fps: 0", x=100, y=100)
+            helv = pyglet.font.load('Helvetica', self.width / 15.0)
+            self.text = pyglet.font.Text(
+                helv,
+                'Hello, World!',
+                x=.5,
+                y=.5,
+                halign=pyglet.font.Text.CENTER,
+                valign=pyglet.font.Text.CENTER,
+                color=(1, 1, 1, 0.5),
+            )
         #@self.event
         def on_key_press(self, symbol, modifiers):
             if symbol == pyglet.window.key.TAB:
@@ -561,32 +617,10 @@ try:
     #
         #@self.win.event
         def on_draw(self):
-            if not os.path.isfile(self.e.filename):
-                if self.e.stream:
-                    if self.e.verb: print("Sending request")
-                    self.e.socket.send (b"Hello")
-                    #message = self.e.socket.recv()
-                    #print "Received reply ", message
-                    #return
-
-                    X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], recv_array(self.e.socket)
-                    if self.e.verb: print("Received reply ", Theta.shape)
-                else:
-                    self.e.dt = self.e.time() - self.e.t
-                    self.e.update()
-                    self.e.t = self.e.time()
-                    X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], self.e.lames[2, :]
-
-                if not self.e.filename is None:
-                    if self.e.verb: print("recording at t=", self.e.t)
-                    self.e.z = np.vstack((self.e.z, np.hstack((np.array(self.e.t), Theta))))
-            else:
-                self.e.t = self.e.time()
-                i_t = np.argmin(self.e.z[:, 0] < self.e.t)
-                if self.e.verb: print("playback at t=", self.e.t, i_t)
-                X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], self.e.z[i_t, 1:] 
-
-            self.W = float(self.width)/self.height
+            if (not self.e.period is None) and (not self.e.filename is None):
+                if True: #not os.path.isfile(self.e.filename):
+                    if self.e.time() > self.e.period:
+                        pyglet.app.exit()
             self.clear()
             gl.glMatrixMode(gl.GL_PROJECTION);
             gl.glLoadIdentity()
@@ -597,6 +631,7 @@ try:
     #                             Specify the coordinates for the bottom and top horizontal clipping planes.
     #                         Description
     #         gl.gluOrtho2D(-(self.W-1)/2*self.e.total_width, (self.W+1)/2*self.e.total_width, -self.e.total_width/2, self.e.total_width/2, 0, 0, 1);
+            self.W = float(self.width)/self.height
             gl.gluOrtho2D(-self.W/2*self.e.total_width, self.W/2*self.e.total_width, -self.e.total_width/2, self.e.total_width/2, 0, 0, 1);
             gl.glMatrixMode(gl.GL_MODELVIEW);
             gl.glLoadIdentity();
@@ -605,7 +640,22 @@ try:
             gl.glEnable (gl.GL_BLEND)
             gl.glHint(gl.GL_LINE_SMOOTH_HINT, gl.GL_NICEST)
             gl.glColor3f(0., 0., 0.)
+
+            
+            if self.first_frame:
+#                 print(self.e.t0, self.e.t)
+                self.e.t0 = time.time()
+                self.e.t = self.e.time()
+#                 print(self.e.t0, self.e.t)
+                self.first_frame = False
+
+            dt = self.e.time() - self.e.t
+            if 1./self.e.desired_fps - dt>0.: time.sleep(1./self.e.desired_fps - dt)
+
+            self.e.receive()
+            X, Y, Theta = self.e.lames[0, :], self.e.lames[1, :], self.e.lames[2, :]
             dX, dY = np.cos(Theta)/2., np.sin(Theta)/2.
+            #print(Theta)
             # coords = np.vstack((X-dX*self.e.lame_length, Y-dY*self.e.lame_length, X+dX*self.e.lame_length, Y+dY*self.e.lame_length))
             coords = np.vstack((
                                 X-dX*self.e.lame_length+dY*self.e.lame_width, Y-dY*self.e.lame_length-dX*self.e.lame_width,
@@ -619,6 +669,8 @@ try:
                                          indices.T.ravel().tolist(),
                                          ('v2f', coords.T.ravel().tolist()))
             #pyglet.graphics.draw(4*self.e.N_lame, gl.GL_QUADS, ('v2f', coords.T.ravel().tolist()))
+            
+            
             # carré
             if self.e.DEBUG:
                 coords = np.array([[-.5*self.e.total_width, .5*self.e.total_width, .5*self.e.total_width, -.5*self.e.total_width], [-.5*self.e.total_width, -.5*self.e.total_width, .5*self.e.total_width, .5*self.e.total_width]])
@@ -632,6 +684,12 @@ try:
                 pyglet.graphics.draw(2, gl.GL_LINES, ('v2f', [0., 0., 1., 0.]))
                 gl.glColor3f(0., 1., 0.)
                 pyglet.graphics.draw(2, gl.GL_LINES, ('v2f', [0., 0., 0., 1.]))
+                
+            gl.glMatrixMode(gl.GL_MODELVIEW);
+            gl.glLoadIdentity();
+
+            self.label.draw()
+            self.text.draw()
 except:
     print('Could not load pyglet')
 
@@ -647,44 +705,80 @@ def server(e):
         message = socket.recv()
         if e.verb: print("Received request %s" % message)
         e.dt = e.time() - e.t
-        e.update()
+        #e.update()
+        e.receive()
         e.t = e.time()
         send_array(socket, e.lames[2, :])
 
 def serial(e):
+    e.load()
     import serial
     alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
 
     def message(i, increment):
-        return alphabet[i] + str(increment)  + ';\n' 
-    
+#         return alphabet[i] + str(increment)  + ';\n'
+        return alphabet[i] + str(increment)  + ';'
+
     def convert(increment):
         msg  = ''
         for i, increment_ in enumerate(increment):
-            msg += alphabet[i] + str(increment_)  + ';' 
-        return msg  
+            msg += message(i, increment)
+        return msg
 
     with serial.Serial(e.serial_port, e.baud_rate) as ser:
         if e.structure: N_lame = e.N_lame-e.struct_N
         else: N_lame = e.N_lame
         if e.verb: print("Running serial on port: ", e.serial_port)
-        nbpas_old = np.zeros_like(e.lames[2, :N_lame], dtype=np.int)
+        angle_actuel = np.zeros_like(e.lames[2, :N_lame])
         while True:
-            e.dt = e.time() - e.t
-            e.update()
-            e.t = e.time()
-            nbpas = [int(theta/2/np.pi*e.n_pas) for theta in e.lames[2, :N_lame]]
-            dnbpas =  nbpas - nbpas_old
-            nbpas_old = nbpas_old + dnbpas
+            #e.dt = e.time() - e.t
+            #e.update()
+            #e.t = e.time()
+            e.receive()
+            #angle_desire = [int(theta/2/np.pi*e.n_pas) for theta in e.lames[2, :N_lame]]
+            angle_desire = e.lames[2, :N_lame]
+            # on transforme en l'angle à faire pour obtenir la bonne position
+            d_angle = np.mod((angle_desire - angle_actuel) + np.pi/2, np.pi) - np.pi/2
+            # et donc du nombre de pas à faire
+            dnbpas =  d_angle/2/np.pi*e.n_pas
+            # HACK : écrétage pour éviter un overflow
+            dnbpas = e.n_pas_max * np.tanh(dnbpas/e.n_pas_max)
+            # on convertit en int
+            dnbpas = dnbpas.astype(np.int)
+            print(e.lames[2, :N_lame], angle_desire, angle_actuel, dnbpas)
+            angle_actuel = angle_actuel + dnbpas*2*np.pi/e.n_pas
+            angle_actuel = np.mod(angle_actuel + np.pi/2, np.pi) - np.pi/2
             # if e.verb: print('@', e.t, convert(dnbpas), '-fps=', 1./e.dt)
             if e.verb: print('@', e.t, '-fps=', 1./e.dt)
             #ser.write(convert(dnbpas))
-            for i, increment in enumerate(dnbpas): ser.write(message(i, increment))
+            for i, increment in enumerate(dnbpas):
+                if np.abs(increment) > e.n_pas_max:
+                    print('!! /Z\ !! @ ', e.t, ' overflow @ ', i, increment)
+                msg = message(i, increment)
+                ser.write(msg)
+                # if e.verb and i==0: print (msg)
             dt = e.time() - e.t
             if 1./e.desired_fps - dt>0.: time.sleep(1./e.desired_fps - dt)
 
 
+def writer(e, force=False):
+    if not e.filename is None:
+        if not os.path.isfile(e.filename) or force:
+            if e.structure: N_lame = e.N_lame-e.struct_N
+            else: N_lame = e.N_lame
+            e.z = np.zeros((0, N_lame+1))
+            for t in np.arange(0., e.period, 1./e.desired_fps):
+                e.dt = 1./e.desired_fps
+                e.t = t
+                e.update()
+                if e.verb: print("recording at t=", e.t)
+                e.z = np.vstack((e.z, np.hstack((np.array(e.t), e.lames[2, :N_lame] ))))
+            # save the file
+            np.save(e.filename, e.z)
+
 def client(e):
+    writer(e)
+    e.load()
     if e.stream:
         import zmq
         context = zmq.Context()
@@ -710,27 +804,24 @@ def client(e):
     window.set_location(screen.width/3, screen.height/3)
     pyglet.gl.glClearColor(1., 1., 1., 1.)
     pyglet.clock.schedule(callback)
+#     window.e.t0 = window.e.time(init=True)
     pyglet.app.run()
-    if not os.path.isfile(e.filename) and  not e.filename is None:
-        # save the file
-        np.save(e.filename, e.z)
     if e.screenshot: pyglet.image.get_buffer_manager().get_color_buffer().save('screenshot.png')
 
 def main(e):
-#     print(e.display, e.stream)
-    # Now we can run the server
     if e.display:
         # Now we can connect a client to the server
-        #Process(target=client, args=(e,)).start()
         client(e)
 
     elif e.stream:
-        #Process(target=server, args=(e,)).start()
+        # Now we can run the server
         server(e)
 
     elif e.serial:
-        #Process(target=server, args=(e,)).start()
         serial(e)
+
+    else:
+        writer(e, force=True)
 
 if __name__ == '__main__':
     e = EdgeGrid()
