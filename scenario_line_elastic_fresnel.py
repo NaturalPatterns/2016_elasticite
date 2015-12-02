@@ -39,7 +39,6 @@ class EdgeGrid(el.EdgeGrid):
 #         print (damp(self.t), self.t, self.period)
         return 3. * force
 
-
 if __name__ == "__main__":
     import sys
     if len(sys.argv)>1: mode = sys.argv[1]
