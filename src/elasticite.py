@@ -713,7 +713,10 @@ def serial(e):
             e.receive()
             #angle_desire = [int(theta/2/np.pi*e.n_pas) for theta in e.lames[2, :N_lame]]
             angle_desire = e.lames[2, :N_lame]
-            dnbpas =  (angle_desire - angle_actuel)/2/np.pi*e.n_pas
+            # on transforme en l'angle à faire pour obtenir la bonne position
+            d_angle = np.mod((angle_desire - angle_actuel) + np.pi/2, np.pi) - np.pi/2
+            # et donc du nombre de pas à faire
+            dnbpas =  d_angle/2/np.pi*e.n_pas
             # HACK : écrétage pour éviter un overflow
             dnbpas = e.n_pas_max * np.tanh(dnbpas/e.n_pas_max)
             # on convertit en int

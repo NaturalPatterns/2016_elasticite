@@ -83,15 +83,16 @@ def master(e, filename):
 
     for i_frame in range(z.shape[0]):
         angle_desire = z[i_frame, 1:]
-        dnbpas =  (angle_desire - angle_actuel)/2/np.pi*e.n_pas
+        # on transforme en l'angle à faire pour obtenir la bonne position
+        d_angle = np.mod((angle_desire - angle_actuel) + np.pi/2, np.pi) - np.pi/2
+        # et donc du nombre de pas à faire
+        dnbpas =  d_angle/2/np.pi*e.n_pas
         # HACK : écrétage pour éviter un overflow
-        dnbpas = e.n_pas_max * np.tanh(dnbpas/e.n_pas_max)
+        #dnbpas = e.n_pas_max * np.tanh(dnbpas/e.n_pas_max)
         # on convertit en int
         dnbpas = dnbpas.astype(np.int)
-        # print(e.lames[2, :N_lame], angle_desire, angle_actuel, dnbpas)
         angle_actuel = angle_actuel + dnbpas*2*np.pi/e.n_pas
         angle_actuel = np.mod(angle_actuel + np.pi/2, np.pi) - np.pi/2
-        # if e.verb: print('@', e.t, convert(dnbpas), '-fps=', 1./e.dt)
         for i, increment in enumerate(dnbpas):
             if np.abs(increment) > e.n_pas_max:
                 print('!! /Z\ !! @ ', i_frame, ' overflow @ ', i, increment)
