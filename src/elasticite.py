@@ -583,7 +583,23 @@ try:
             super(Window, self).__init__(config=smoothConfig, *args, **kwargs)
             self.e = e
             self.first_frame = True
-
+            self.label = pyglet.text.Label('Hello, world',
+                          #font_name='Times New Roman',
+                          font_size=36, color=(255, 0, 0, 255),
+                            x=self.width / 2,
+                            y=self.height / 2,
+                           anchor_x='center', anchor_y='center')
+            self.fps_label = pyglet.text.Label(text="fps: 0", x=100, y=100)
+            helv = pyglet.font.load('Helvetica', self.width / 15.0)
+            self.text = pyglet.font.Text(
+                helv,
+                'Hello, World!',
+                x=.5,
+                y=.5,
+                halign=pyglet.font.Text.CENTER,
+                valign=pyglet.font.Text.CENTER,
+                color=(1, 1, 1, 0.5),
+            )
         #@self.event
         def on_key_press(self, symbol, modifiers):
             if symbol == pyglet.window.key.TAB:
@@ -625,7 +641,7 @@ try:
             gl.glHint(gl.GL_LINE_SMOOTH_HINT, gl.GL_NICEST)
             gl.glColor3f(0., 0., 0.)
 
-
+            
             if self.first_frame:
 #                 print(self.e.t0, self.e.t)
                 self.e.t0 = time.time()
@@ -653,6 +669,8 @@ try:
                                          indices.T.ravel().tolist(),
                                          ('v2f', coords.T.ravel().tolist()))
             #pyglet.graphics.draw(4*self.e.N_lame, gl.GL_QUADS, ('v2f', coords.T.ravel().tolist()))
+            
+            
             # carré
             if self.e.DEBUG:
                 coords = np.array([[-.5*self.e.total_width, .5*self.e.total_width, .5*self.e.total_width, -.5*self.e.total_width], [-.5*self.e.total_width, -.5*self.e.total_width, .5*self.e.total_width, .5*self.e.total_width]])
@@ -666,6 +684,12 @@ try:
                 pyglet.graphics.draw(2, gl.GL_LINES, ('v2f', [0., 0., 1., 0.]))
                 gl.glColor3f(0., 1., 0.)
                 pyglet.graphics.draw(2, gl.GL_LINES, ('v2f', [0., 0., 0., 1.]))
+                
+            gl.glMatrixMode(gl.GL_MODELVIEW);
+            gl.glLoadIdentity();
+
+            self.label.draw()
+            self.text.draw()
 except:
     print('Could not load pyglet')
 
