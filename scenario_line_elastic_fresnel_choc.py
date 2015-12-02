@@ -35,7 +35,6 @@ class EdgeGrid(el.EdgeGrid):
 
         smooth_tau = 15
         smooth = lambda t: 1.-np.exp(-np.abs(np.mod(t+self.period/2, self.period)-self.period/2)**2/smooth_tau**2)
-        
         force -= 12 * (np.mod(self.lames[2, :N_lame]+np.pi/2, np.pi) - np.pi/2) * (1- smooth(self.t) )
         
         #print(freq(self.t), damp(self.t))

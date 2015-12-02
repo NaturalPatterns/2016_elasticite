@@ -26,8 +26,9 @@ class EdgeGrid(el.EdgeGrid):
         damp_angle = lambda t: 1.-np.exp(-(np.mod(t+self.period/2, self.period)-self.period/2)**2/2/damp_angle_tau**2)
         xf = lambda t: location[0]
         zf = lambda t: location[2] + 3.5 * np.sin(2*np.pi*(t)/self.period)
-        smooth = lambda t: 1.-np.exp(-np.abs(np.mod(t+self.period/2, self.period)-self.period/2)**2/damp_tau**2)
-
+        smooth_tau = 15
+        smooth = lambda t: 1.-np.exp(-np.abs(np.mod(t+self.period/2, self.period)-self.period/2)**2/smooth_tau**2)
+        
         desired_angle = np.arctan2(self.lames[1, :N_lame]-zf(self.t), self.lames[0, :N_lame]-xf(self.t)) - np.pi/2
         # self.lames[2, :N_lame] = np.mod(self.lames[2, :]-np.pi/2, np.pi) + np.pi/2
         #print (damp_angle(self.t), desired_angle)
