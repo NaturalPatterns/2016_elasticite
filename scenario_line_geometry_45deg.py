@@ -23,8 +23,9 @@ class EdgeGrid(el.EdgeGrid):
         force -= 40 * (np.mod(self.lames[2, :N_lame]+np.pi/2, np.pi) - np.pi/2) * (1- smooth(self.t) ) *(1-on_off(self.t, 3))
         force += noise(self.t)*np.pi*np.random.randn(N_lame)
         force -= damp(self.t) * self.lames[3, :N_lame]/self.dt
-        return .01 * force
-    
+        force *= .01
+        force = 2 * np.tanh(force)
+        return force    
 
 if __name__ == "__main__":
     import sys
