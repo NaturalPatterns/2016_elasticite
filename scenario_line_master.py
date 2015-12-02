@@ -44,7 +44,7 @@ def master(e, filename):
     for scenario in ['line_vague_dense', 'line_vague_solo', 
                      'line_onde_dense', 'line_onde_solo', 'line_fresnelastique',
                     'line_fresnelastique_choc', 'line_fresnelastique_chirp', 
-                     'line_geometry', 'line_geometry_45deg']:
+                     'line_geometry', 'line_geometry_45deg', 'line_geometry_structure']:
         z_s[scenario] = np.load(os.path.join(matpath, scenario + '.npy'))
     
     ###########################################################################
@@ -55,6 +55,7 @@ def master(e, filename):
     z = montage(z, z_s['line_onde_dense'])
     ###########################################################################
     z = montage(z, z_s['line_geometry_45deg'])
+    z = montage(z, z_s['line_geometry_structure'])
     z = montage(z, z_s['line_geometry'])
     z = montage(z, mirror(z_s['line_geometry_45deg']))
     ###########################################################################
@@ -64,10 +65,12 @@ def master(e, filename):
     ###########################################################################
     z = montage(z, z_s['line_geometry'])
     z = montage(z, z_s['line_fresnelastique'])
+    z = montage(z, z_s['line_geometry_structure'])
     z = montage(z, mirror(z_s['line_fresnelastique']))
     z = montage(z, z_s['line_fresnelastique_chirp'])
     z = montage(z, z_s['line_fresnelastique_choc'])
     z = montage(z, z_s['line_geometry'])
+    z = montage(z, z_s['line_geometry_structure'])
     ###########################################################################
     z = montage(z, z_s['line_fresnelastique'])
     z = montage(z, interleave(z_s['line_fresnelastique'], mirror(z_s['line_fresnelastique'])))
@@ -79,23 +82,7 @@ def master(e, filename):
     
     ###########################################################################
     # check that there is not overflow @ 30 fps
-    angle_actuel = np.zeros(z.shape[1]-1)
-
-    for i_frame in range(z.shape[0]):
-        angle_desire = z[i_frame, 1:]
-        # on transforme en l'angle à faire pour obtenir la bonne position
-        d_angle = np.mod((angle_desire - angle_actuel) + np.pi/2, np.pi) - np.pi/2
-        # et donc du nombre de pas à faire
-        dnbpas =  d_angle/2/np.pi*e.n_pas
-        # HACK : écrétage pour éviter un overflow
-        #dnbpas = e.n_pas_max * np.tanh(dnbpas/e.n_pas_max)
-        # on convertit en int
-        dnbpas = dnbpas.astype(np.int)
-        angle_actuel = angle_actuel + dnbpas*2*np.pi/e.n_pas
-        angle_actuel = np.mod(angle_actuel + np.pi/2, np.pi) - np.pi/2
-        for i, increment in enumerate(dnbpas):
-            if np.abs(increment) > e.n_pas_max:
-                print('!! /Z\ !! @ ', i_frame, ' overflow @ ', i, increment)
+    el.check(e, z)
     ###########################################################################
     # save the file
     np.save(filename, z)
