@@ -705,7 +705,7 @@ def serial(e):
         if e.structure: N_lame = e.N_lame-e.struct_N
         else: N_lame = e.N_lame
         if e.verb: print("Running serial on port: ", e.serial_port)
-        angle_actuel = np.zeros_like(e.lames[2, :N_lame], dtype=np.int)
+        angle_actuel = np.zeros_like(e.lames[2, :N_lame])
         while True:
             #e.dt = e.time() - e.t
             #e.update()
@@ -718,7 +718,7 @@ def serial(e):
             dnbpas = e.n_pas_max * np.tanh(dnbpas/e.n_pas_max)
             # on convertit en int
             dnbpas = dnbpas.astype(np.int)
-            # print(e.lames[2, :N_lame], angle_desire, angle_actuel, dnbpas)
+            print(e.lames[2, :N_lame], angle_desire, angle_actuel, dnbpas)
             angle_actuel = angle_actuel + dnbpas*2*np.pi/e.n_pas
             angle_actuel = np.mod(angle_actuel + np.pi/2, np.pi) - np.pi/2
             # if e.verb: print('@', e.t, convert(dnbpas), '-fps=', 1./e.dt)
