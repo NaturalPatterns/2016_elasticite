@@ -9,17 +9,17 @@ def master(e, filename):
     if e.structure: N_lame = e.N_lame-e.struct_N
     else: N_lame = e.N_lame
 
-    def montage(z, z_in, damp_tau=60.):
+    def montage(z, z_in, damp_tau=0.):
         z_out = z.copy()
         z_s = z_in.copy()
-        if damp_tau>0:
-            max_time = z_in.shape[0]/e.desired_fps
-            time = np.linspace(0., max_time, z_in.shape[0])
-            smooth = 1.-np.exp((np.cos(2*np.pi* time / max_time)-1)/(damp_tau / max_time)**2)
-            z_s[:, 1:] *= smooth[:, np.newaxis]
+        #if damp_tau>0:
+        #    max_time = z_in.shape[0]/e.desired_fps
+        #    time = np.linspace(0., max_time, z_in.shape[0])
+        #    smooth = 1.-np.exp((np.cos(2*np.pi* time / max_time)-1)/(damp_tau / max_time)**2)
+        #    z_s[:, 1:] *= smooth[:, np.newaxis]
 
         #print (z_out[0, 0], z_out[-1, 0], z_s[0, 0], z_s[-1, 0])
-        z_s[:, 0] += z_out[-1, 0] #+ 1./e.desired_fps # increment the time on the new array
+        z_s[:, 0] += z_out[-1, 0] + 1./e.desired_fps # increment the time on the new array
         #print (z_out.shape, z_s.shape, z_s[0, 0], z_s[-1, 0])
         return np.vstack((z_out, z_s))
 
@@ -41,12 +41,15 @@ def master(e, filename):
             
     matpath = 'mat/'
     z_s = {}
-    for scenario in ['line_vague_dense', 'line_vague_solo', 
+    #print('importing scenarii')
+    for scenario in [#'line_vague_dense', 'line_vague_solo', 
                      'line_onde_dense', 'line_onde_solo', 'line_fresnelastique',
                     'line_fresnelastique_choc', 'line_fresnelastique_chirp', 
                      'line_geometry', 'line_geometry_45deg', 'line_geometry_structure']:
         z_s[scenario] = np.load(os.path.join(matpath, scenario + '.npy'))
-    
+        #print(scenario)
+        el.check(e, z_s[scenario])
+    #print('finished importing scenarii')    
     ###########################################################################
     burnout_time = 4.
     z = np.zeros((1, N_lame+1)) # zero at zero

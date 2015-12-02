@@ -11,7 +11,7 @@ class EdgeGrid(el.EdgeGrid):
 
         force = np.zeros_like(self.lames[2, :N_lame])
         damp_min = 0.4
-        damp_tau = 4.
+        damp_tau = 14.
         damp = lambda t: damp_min + (1.-damp_min)*np.exp(-np.abs(np.mod(t+self.period/2, self.period)-self.period/2)/damp_tau)
 
         smooth = lambda t: 1.-np.exp(-np.abs(np.mod(t+self.period/2, self.period)-self.period/2)**2/damp_tau**2)

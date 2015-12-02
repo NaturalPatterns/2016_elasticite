@@ -10,9 +10,9 @@ class EdgeGrid(el.EdgeGrid):
         else: N_lame = self.N_lame
 
         force = np.zeros_like(self.lames[2, :N_lame])
-        damp_min = 0.9
-        damp_tau = 4.
-        damp = lambda t: damp_min + (1.-damp_min)*np.exp(-np.abs(np.mod(t+self.period/2, self.period)-self.period/2)/damp_tau)
+        damp_min = 0.8
+        damp_tau = 15.
+        damp = lambda t: damp_min #+ (1.-damp_min)*np.exp(-np.abs(np.mod(t+self.period/2, self.period)-self.period/2)/damp_tau)
 
         smooth = lambda t: 1.-np.exp(-np.abs(np.mod(t+self.period/2, self.period)-self.period/2)**2/damp_tau**2)
         on_off = lambda t, freq: (np.sin(2*np.pi*t/self.period*freq) > 0.)
@@ -28,11 +28,10 @@ class EdgeGrid(el.EdgeGrid):
             angle_desired[i] = struct_angles[idx]
         
         force -= 20 * (np.mod(self.lames[2, :N_lame] - angle_desired +np.pi/2, np.pi) - np.pi/2 ) * smooth(self.t)
-        force -= 40 * (np.mod(self.lames[2, :N_lame] + np.pi/2, np.pi) - np.pi/2) * (1- smooth(self.t) )
+        force -= 80 * (np.mod(self.lames[2, :N_lame] + np.pi/2, np.pi) - np.pi/2) * (1- smooth(self.t) )
         force += noise(self.t)*np.pi*np.random.randn(N_lame)
         force -= damp(self.t) * self.lames[3, :N_lame]/self.dt
-        force *= .01
-        force = 2 * np.tanh(force)
+        force = .02 * 100 * np.tanh(force/100)
         return force    
 
 if __name__ == "__main__":

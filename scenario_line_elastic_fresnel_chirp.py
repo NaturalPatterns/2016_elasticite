@@ -32,9 +32,13 @@ class EdgeGrid(el.EdgeGrid):
         amp = lambda t: 1 - np.exp(-np.abs(t/damp_chirp_tau))
         zf = lambda t: location[2] + 3.5 * amp(t) * chirp(t)
 
+        smooth_tau = 15
+        smooth = lambda t: 1.-np.exp(-np.abs(np.mod(t+self.period/2, self.period)-self.period/2)**2/smooth_tau**2)
+        
         #print(freq(self.t), damp(self.t))
         desired_angle = np.arctan2(self.lames[1, :N_lame]-zf(self.t), self.lames[0, :N_lame]-xf(self.t)) - np.pi/2
-        force += damp_angle(self.t)*(np.mod(desired_angle+np.pi/2, np.pi) - np.pi/2) - self.lames[2, :N_lame]
+        force += (damp_angle(self.t)*(np.mod(desired_angle+np.pi/2, np.pi) - np.pi/2) - self.lames[2, :N_lame]) *smooth(self.t)
+        force -= 12 * (np.mod(self.lames[2, :N_lame]+np.pi/2, np.pi) - np.pi/2) * (1- smooth(self.t) )
         force -= damp(self.t) * self.lames[3, :N_lame]/self.dt
         return 3. * force
 

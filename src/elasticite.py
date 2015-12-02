@@ -779,7 +779,7 @@ def writer(e, force=False):
 
 def check(e, z):
     angle_actuel = np.zeros(z.shape[1]-1)
-
+    
     for i_frame in range(z.shape[0]):
         angle_desire = z[i_frame, 1:]
         # on transforme en l'angle à faire pour obtenir la bonne position

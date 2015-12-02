@@ -21,22 +21,23 @@ class EdgeGrid(el.EdgeGrid):
         force = np.zeros_like(self.lames[2, :N_lame])
         damp_min = 0.01
         damp_tau = 1.5
-        damp_angle_tau = 8.
+        damp_angle_tau = 14.
         damp = lambda t: damp_min + (1.-damp_min)*np.exp(-np.abs(np.mod(t+self.period/2, self.period)-self.period/2)/damp_tau)
         damp_angle = lambda t: 1.-np.exp(-(np.mod(t+self.period/2, self.period)-self.period/2)**2/2/damp_angle_tau**2)
         xf = lambda t: location[0]
         zf = lambda t: location[2] + 3.5 * np.sin(2*np.pi*(t)/self.period)
+        smooth = lambda t: 1.-np.exp(-np.abs(np.mod(t+self.period/2, self.period)-self.period/2)**2/damp_tau**2)
 
         desired_angle = np.arctan2(self.lames[1, :N_lame]-zf(self.t), self.lames[0, :N_lame]-xf(self.t)) - np.pi/2
         # self.lames[2, :N_lame] = np.mod(self.lames[2, :]-np.pi/2, np.pi) + np.pi/2
         #print (damp_angle(self.t), desired_angle)
-        force += damp_angle(self.t)*(np.mod(desired_angle+np.pi/2, np.pi) - np.pi/2) - self.lames[2, :N_lame]
+        force += (damp_angle(self.t)*(np.mod(desired_angle+np.pi/2, np.pi) - np.pi/2) - self.lames[2, :N_lame]) *smooth(self.t)
+        force -= 12 * (np.mod(self.lames[2, :N_lame]+np.pi/2, np.pi) - np.pi/2) * (1- smooth(self.t) )
         #print (force)
         force -= damp(self.t) * self.lames[3, :N_lame]/self.dt
         #force *= damp_force(self.t) #* self.lames[3, :N_lame]/self.dt
 #         print (damp(self.t), self.t, self.period)
         return 3. * force
-
 
 if __name__ == "__main__":
     import sys
