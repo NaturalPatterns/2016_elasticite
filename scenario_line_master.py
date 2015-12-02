@@ -41,15 +41,15 @@ def master(e, filename):
             
     matpath = 'mat/'
     z_s = {}
-    #print('importing scenarii')
+    print('importing scenarii')
     for scenario in [#'line_vague_dense', 'line_vague_solo', 
                      'line_onde_dense', 'line_onde_solo', 'line_fresnelastique',
                     'line_fresnelastique_choc', 'line_fresnelastique_chirp', 
                      'line_geometry', 'line_geometry_45deg', 'line_geometry_structure']:
         z_s[scenario] = np.load(os.path.join(matpath, scenario + '.npy'))
-        #print(scenario)
+        print(scenario)
         el.check(e, z_s[scenario])
-    #print('finished importing scenarii')    
+    print('finished importing scenarii')    
     ###########################################################################
     burnout_time = 4.
     z = np.zeros((1, N_lame+1)) # zero at zero
@@ -74,12 +74,15 @@ def master(e, filename):
     z = montage(z, z_s['line_fresnelastique_choc'])
     z = montage(z, z_s['line_geometry'])
     z = montage(z, z_s['line_geometry_structure'])
+
     ###########################################################################
+
     z = montage(z, z_s['line_fresnelastique'])
     z = montage(z, interleave(z_s['line_fresnelastique'], mirror(z_s['line_fresnelastique'])))
     z = montage(z, interleave(z_s['line_fresnelastique_chirp'], mirror(z_s['line_fresnelastique_choc'])))
     z = montage(z, interleave(z_s['line_fresnelastique_choc'], mirror(z_s['line_fresnelastique_chirp'])))
     ###########################################################################
+
     z = montage(z, z_s['line_geometry'])
     z = montage(z, z_s['line_onde_dense'])
     

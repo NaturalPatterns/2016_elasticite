@@ -779,9 +779,9 @@ def writer(e, force=False):
 
 def check(e, z):
     angle_actuel = np.zeros(z.shape[1]-1)
-    
-    for i_frame in range(z.shape[0]):
-        angle_desire = z[i_frame, 1:]
+    zz = np.vstack((np.zeros(z.shape[1]), z, np.zeros(z.shape[1])))
+    for i_frame in range(zz.shape[0]):
+        angle_desire = zz[i_frame, 1:]
         # on transforme en l'angle à faire pour obtenir la bonne position
         d_angle = np.mod((angle_desire - angle_actuel) + np.pi/2, np.pi) - np.pi/2
         # et donc du nombre de pas à faire
