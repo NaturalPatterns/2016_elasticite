@@ -748,7 +748,7 @@ def serial(e):
             # on convertit en int
             dnbpas = dnbpas.astype(np.int)
             # print('desired=', angle_desire[0]*180/np.pi, ', actuel=' ,angle_actuel[0]*180/np.pi, ', # pas=', dnbpas[0])
-            angle_actuel += dnbpas*2.*np.pi/e.n_pas
+            angle_actuel += dnbpas.astype(np.float)*2.*np.pi/e.n_pas
             angle_actuel = np.mod(angle_actuel + np.pi/2, np.pi) - np.pi/2
             # if e.verb: print('@', e.t, convert(dnbpas), '-fps=', 1./e.dt)
             if e.verb: print('@', e.t, '-fps=', 1./e.dt)
