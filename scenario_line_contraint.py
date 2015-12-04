@@ -21,7 +21,7 @@ if __name__ == "__main__":
     if len(sys.argv)>1: mode = sys.argv[1]
     else: mode = 'both'
 
-    #e = EdgeGrid(N_lame=25, grid_type='line', mode=mode, verb=False, period=30)
+    e = EdgeGrid(N_lame=25, grid_type='line', mode=mode, verb=False, period=30)
     # to test writing / reading from a file
-    e = EdgeGrid(N_lame=25, grid_type='line', mode=mode, verb=True, period=30, filename='mat/line_contraint.npy')
+    #e = EdgeGrid(N_lame=25, grid_type='line', mode=mode, verb=True, period=30, filename='mat/line_contraint.npy')
     el.main(e)
