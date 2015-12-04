@@ -717,6 +717,7 @@ def serial(e):
 
     def message(i, increment):
 #         return alphabet[i] + str(increment)  + ';\n'
+        print (increment)
         return alphabet[i] + str(increment)  + ';'
 
     def convert(increment):
@@ -745,7 +746,7 @@ def serial(e):
             # dnbpas = e.n_pas_max * np.tanh(dnbpas/e.n_pas_max)
             # on convertit en int
             dnbpas = dnbpas.astype(np.int)
-            print('desired', angle_desire[0]*180/np.pi, ', actuel=' ,angle_actuel[0]*180/np.pi, ' # pas ', dnbpas[0])
+            # print('desired=', angle_desire[0]*180/np.pi, ', actuel=' ,angle_actuel[0]*180/np.pi, ', # pas=', dnbpas[0])
             angle_actuel = angle_actuel + dnbpas*2*np.pi/e.n_pas
             angle_actuel = np.mod(angle_actuel + np.pi/2, np.pi) - np.pi/2
             # if e.verb: print('@', e.t, convert(dnbpas), '-fps=', 1./e.dt)
