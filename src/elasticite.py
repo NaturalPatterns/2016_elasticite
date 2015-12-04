@@ -93,7 +93,7 @@ class EdgeGrid():
         self.serial_port, self.baud_rate = '/dev/ttyUSB0', 115200
         # 1.8 deg par pas (=200 pas par tour) x 32 divisions de pas
         # demultiplication : pignon1= 14 dents, pignon2 = 60 dents
-        self.n_pas = 200. * 32. * 60 / 15
+        self.n_pas = 200. * 32. * 60 / 14
         # TODO : Vitesse Max moteur = 1 tour en 3,88
         self.n_pas_max = 148 # 150
 
