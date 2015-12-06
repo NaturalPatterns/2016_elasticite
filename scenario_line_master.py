@@ -45,7 +45,7 @@ def master(e, filename):
     for scenario in [#'line_vague_dense', 'line_vague_solo', 
                      'line_onde_dense', 'line_onde_solo', 'line_fresnelastique',
                     'line_fresnelastique_choc', 'line_fresnelastique_chirp', 
-                     'line_geometry', 'line_geometry_45deg', 'line_geometry_structure']:
+                     'line_geometry', 'line_geometry_45deg', 'line_geometry_90deg', 'line_geometry_structure']:
         z_s[scenario] = np.load(os.path.join(matpath, scenario + '.npy'))
         print(scenario)
         el.check(e, z_s[scenario])
@@ -55,18 +55,20 @@ def master(e, filename):
     z = np.zeros((1, N_lame+1)) # zero at zero
     z = np.vstack((z, np.hstack((np.array(burnout_time), np.zeros(N_lame) ))))
     ###########################################################################
-    z = montage(z, z_s['line_onde_solo'])
+#    z = montage(z, z_s['line_onde_solo'])
     z = montage(z, z_s['line_onde_dense'])
     ###########################################################################
+    z = montage(z, z_s['line_geometry_90deg'])
     z = montage(z, z_s['line_geometry_45deg'])
     z = montage(z, z_s['line_geometry_structure'])
     z = montage(z, z_s['line_geometry'])
     z = montage(z, mirror(z_s['line_geometry_structure']))
     z = montage(z, mirror(z_s['line_geometry_45deg']))
+    z = montage(z, mirror(z_s['line_geometry_90deg']))
     ###########################################################################
-    z = montage(z, z_s['line_onde_solo'])
+#    z = montage(z, z_s['line_onde_solo'])
     z = montage(z, revert(z_s['line_onde_dense']))
-    z = montage(z, revert(z_s['line_onde_solo']))
+#    z = montage(z, revert(z_s['line_onde_solo']))
     ###########################################################################
     z = montage(z, z_s['line_geometry_structure'])
     z = montage(z, z_s['line_geometry'])
@@ -84,7 +86,7 @@ def master(e, filename):
     z = montage(z, z_s['line_fresnelastique'])
     ###########################################################################
     z = montage(z, revert(z_s['line_onde_dense']))
-    z = montage(z, revert(z_s['line_onde_solo']))
+#    z = montage(z, revert(z_s['line_onde_solo']))
     ###########################################################################
     # check that there is not overflow @ 30 fps
     el.check(e, z)
