@@ -45,7 +45,7 @@ def master(e, filename):
     for scenario in [#'line_vague_dense', 'line_vague_solo', 
                      'line_onde_dense', 'line_onde_solo', 'line_fresnelastique',
                     'line_fresnelastique_choc', 'line_fresnelastique_chirp', 
-                     'line_geometry', 'line_geometry_45deg', 'line_geometry_structure']:
+                     'line_geometry', 'line_geometry_45deg', 'line_geometry_90deg', 'line_geometry_structure']:
         z_s[scenario] = np.load(os.path.join(matpath, scenario + '.npy'))
         print(scenario)
         el.check(e, z_s[scenario])
