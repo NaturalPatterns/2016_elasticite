@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
+import sys
+sys.path.append('/home/pi/elasticte/')
 
 import elasticite as el
 import numpy as np
@@ -101,7 +103,6 @@ if __name__ == "__main__":
     if len(sys.argv)>1: mode = sys.argv[1]
     else: mode = 'both'
         
-    filename = 'mat/master_dimanche.npy'
     filename = '/home/pi/elasticte/mat/master_dimanche.npy'
     e = el.EdgeGrid(N_lame=25, grid_type='line', mode=mode,
                  verb=False, filename=filename)
