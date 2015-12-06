@@ -51,41 +51,40 @@ def master(e, filename):
         el.check(e, z_s[scenario])
     print('finished importing scenarii')    
     ###########################################################################
-    burnout_time = 4.
+    burnout_time = 0.1
     z = np.zeros((1, N_lame+1)) # zero at zero
     z = np.vstack((z, np.hstack((np.array(burnout_time), np.zeros(N_lame) ))))
     ###########################################################################
+    z = montage(z, z_s['line_onde_solo'])
     z = montage(z, z_s['line_onde_dense'])
     ###########################################################################
     z = montage(z, z_s['line_geometry_45deg'])
     z = montage(z, z_s['line_geometry_structure'])
     z = montage(z, z_s['line_geometry'])
+    z = montage(z, mirror(z_s['line_geometry_structure']))
     z = montage(z, mirror(z_s['line_geometry_45deg']))
     ###########################################################################
     z = montage(z, z_s['line_onde_solo'])
-    z = montage(z, revert(z_s['line_onde_solo']))
     z = montage(z, revert(z_s['line_onde_dense']))
+    z = montage(z, revert(z_s['line_onde_solo']))
     ###########################################################################
+    z = montage(z, z_s['line_geometry_structure'])
     z = montage(z, z_s['line_geometry'])
     z = montage(z, z_s['line_fresnelastique'])
-    z = montage(z, z_s['line_geometry_structure'])
     z = montage(z, mirror(z_s['line_fresnelastique']))
     z = montage(z, z_s['line_fresnelastique_chirp'])
     z = montage(z, z_s['line_fresnelastique_choc'])
     z = montage(z, z_s['line_geometry'])
     z = montage(z, z_s['line_geometry_structure'])
-
     ###########################################################################
-
     z = montage(z, z_s['line_fresnelastique'])
     z = montage(z, interleave(z_s['line_fresnelastique'], mirror(z_s['line_fresnelastique'])))
     z = montage(z, interleave(z_s['line_fresnelastique_chirp'], mirror(z_s['line_fresnelastique_choc'])))
     z = montage(z, interleave(z_s['line_fresnelastique_choc'], mirror(z_s['line_fresnelastique_chirp'])))
+    z = montage(z, z_s['line_fresnelastique'])
     ###########################################################################
-
-    z = montage(z, z_s['line_geometry'])
-    z = montage(z, z_s['line_onde_dense'])
-    
+    z = montage(z, revert(z_s['line_onde_dense']))
+    z = montage(z, revert(z_s['line_onde_solo']))
     ###########################################################################
     # check that there is not overflow @ 30 fps
     el.check(e, z)

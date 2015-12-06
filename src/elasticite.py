@@ -95,7 +95,7 @@ class EdgeGrid():
         # demultiplication : pignon1= 14 dents, pignon2 = 60 dents
         self.n_pas = 200. * 32. * 60 / 14
         # TODO : Vitesse Max moteur = 1 tour en 3,88
-        self.n_pas_max = 140
+        self.n_pas_max = 148 # 150
 
         # taille installation
         self.total_width = 8 # en mètres
@@ -416,7 +416,7 @@ class EdgeGrid():
         return mpy.ipython_display(fname, fps=fps, loop=1, autoplay=1)
 
     def plot_structure(self, W=1000, H=618, fig=None, ax=None, border = 0.0, 
-            opts = dict(vmin=-1, vmax=1., linewidths=0, cmap=None, alpha=.1, s=3.), 
+            opts = dict(vmin=-1, vmax=1., linewidths=0, cmap=None, alpha=.1, s=5.), 
             scale='auto'): #
         opts.update(cmap=plt.cm.hsv)
         if fig is None: fig = plt.figure(figsize=(self.figsize, self.figsize*H/W))
@@ -605,7 +605,7 @@ try:
             if symbol == pyglet.window.key.TAB:
                 if self.fullscreen:
                     self.set_fullscreen(False)
-                    self.set_location(screen.width/3, screen.height/3)
+                    self.set_location(self.width/3, self.height/3)
                 else:
                     self.set_fullscreen(True)
             elif symbol == pyglet.window.key.ESCAPE:
@@ -717,6 +717,7 @@ def serial(e):
 
     def message(i, increment):
 #         return alphabet[i] + str(increment)  + ';\n'
+        # print ('increment', increment)
         return alphabet[i] + str(increment)  + ';'
 
     def convert(increment):
@@ -740,13 +741,14 @@ def serial(e):
             # on transforme en l'angle à faire pour obtenir la bonne position
             d_angle = np.mod((angle_desire - angle_actuel) + np.pi/2, np.pi) - np.pi/2
             # et donc du nombre de pas à faire
-            dnbpas =  d_angle/2/np.pi*e.n_pas
+            dnbpas = d_angle.copy()
+            dnbpas *= 1/2/np.pi*e.n_pas
             # HACK : écrétage pour éviter un overflow
-            dnbpas = e.n_pas_max * np.tanh(dnbpas/e.n_pas_max)
+            # dnbpas = e.n_pas_max * np.tanh(dnbpas/e.n_pas_max)
             # on convertit en int
             dnbpas = dnbpas.astype(np.int)
-            print(e.lames[2, :N_lame], angle_desire, angle_actuel, dnbpas)
-            angle_actuel = angle_actuel + dnbpas*2*np.pi/e.n_pas
+            # print('desired=', angle_desire[0]*180/np.pi, ', actuel=' ,angle_actuel[0]*180/np.pi, ', # pas=', dnbpas[0])
+            angle_actuel += dnbpas.astype(np.float)*2.*np.pi/e.n_pas
             angle_actuel = np.mod(angle_actuel + np.pi/2, np.pi) - np.pi/2
             # if e.verb: print('@', e.t, convert(dnbpas), '-fps=', 1./e.dt)
             if e.verb: print('@', e.t, '-fps=', 1./e.dt)

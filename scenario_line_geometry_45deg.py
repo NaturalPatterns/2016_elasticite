@@ -17,7 +17,7 @@ class EdgeGrid(el.EdgeGrid):
         smooth = lambda t: 1.-np.exp(-np.abs(np.mod(t+self.period/2, self.period)-self.period/2)**2/damp_tau**2)
         on_off = lambda t, freq: (np.sin(2*np.pi*t/self.period*freq) > 0.)
 
-        noise = lambda t: .8 * smooth(t)
+        noise = lambda t: .5 * smooth(t)
         
         force -= 7.5 * (np.mod(self.lames[2, :N_lame]+np.pi/2, np.pi) - np.pi/2 -np.pi/4) *smooth(self.t) *on_off(self.t, 3)
         force -= 40 * (np.mod(self.lames[2, :N_lame]+np.pi/2, np.pi) - np.pi/2) * (1- smooth(self.t) ) *(1-on_off(self.t, 3))
