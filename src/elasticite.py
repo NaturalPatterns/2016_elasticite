@@ -71,7 +71,7 @@ class EdgeGrid():
                  mode = 'both',
                  filename = None,
                  period = None,
-                 **kw_args
+                 #**kw_args
                  ):
         self.t0 = self.time(True)
         self.t = self.time()
