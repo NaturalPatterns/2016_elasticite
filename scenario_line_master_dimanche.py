@@ -103,7 +103,8 @@ if __name__ == "__main__":
     if len(sys.argv)>1: mode = sys.argv[1]
     else: mode = 'both'
         
-    filename = '/home/pi/elasticte/mat/master_dimanche.npy'
+    #filename = '/home/pi/elasticte/mat/master_dimanche.npy'
+    filename = 'mat/master_dimanche.npy'
     e = el.EdgeGrid(N_lame=25, grid_type='line', mode=mode,
                  verb=False, filename=filename)
 
