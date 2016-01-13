@@ -1,9 +1,1 @@
-ELASTICITE
-==========
-
-liste prioritaire:
-------------------
-
-* display
-* trame sensorielle
-
+# elasticite
