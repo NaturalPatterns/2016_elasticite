@@ -11,3 +11,9 @@ onde https://github.com/laurentperrinet/elasticite/blob/master/posts/2015-11-29%
 master https://github.com/laurentperrinet/elasticite/blob/master/posts/2015-12-05%20%C3%A9lasticit%C3%A9%20-%20sc%C3%A9nario%20final%20montage.ipynb
 
 ![Image Alt](files/mirror.png)
+
+
+![Image Alt](https://raw.githubusercontent.com/laurentperrinet/elasticite/master/files/elastic_fresnel_gauche.mp4)
+
+
+![Image of Yaktocat](https://octodex.github.com/images/yaktocat.png)
