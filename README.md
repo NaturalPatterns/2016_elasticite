@@ -16,4 +16,6 @@ master https://github.com/laurentperrinet/elasticite/blob/master/posts/2015-12-0
 ![Image Alt](https://raw.githubusercontent.com/laurentperrinet/elasticite/master/files/elastic_fresnel_gauche.mp4)
 
 
-![Image of Yaktocat](https://octodex.github.com/images/yaktocat.png)
+
+
+[![Image of Yaktocat](https://octodex.github.com/images/yaktocat.png)](http://github.com)
