@@ -3,6 +3,10 @@ default: posts/2015-04-30_trame-sensorielle.ipynb
 todo:
 	grep -R * (^|#)[ ]*(TODO|FIXME|XXX|HINT|TIP)( |:)([^#]*)
 
+posts:
+	rsync -av posts/* ~/pool/blog/invibe/posts/
+	rsync -av files/*  ~/pool/blog/invibe/files/elasticite
+
 # macros for tests
 %.pdf: %.ipynb
 	ipython nbconvert --SphinxTransformer.author='Laurent Perrinet (INT, UMR7289)' --to latex --post PDF $<

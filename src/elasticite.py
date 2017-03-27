@@ -34,16 +34,16 @@ def recv_array(socket, flags=0, copy=True, track=False):
 def mirror(particles, segment, alpha=1.):
     """
     Reflète les points ``particles`` par rapport à ``segment``.
-    
+
     See 2015-11-02 élasticité expansion en miroir
-    
+
     """
-    
+
     mirror = particles.copy()
     perp = np.array([segment[1][1] - segment[1][0], -(segment[0][1] - segment[0][0])])
     d = perp[0]*(segment[0][1] - particles[0, :]) + perp[1]*(segment[1, 1] - particles[1, :])
     mirror[:2, :] =  particles[:2, :] + 2. * d[np.newaxis, :] * perp[:, np.newaxis] / (perp**2).sum()
-    if mirror.shape[0]>2: 
+    if mirror.shape[0]>2:
         mirror[2, :] =  alpha
     return mirror
 
@@ -51,7 +51,7 @@ def mirror(particles, segment, alpha=1.):
 import inspect
 def get_default_args(func):
     """
-    
+
     returns a dictionary of arg_name:default_values for the input function
     """
     args, varargs, keywords, defaults = inspect.getargspec(func)
@@ -183,9 +183,9 @@ class EdgeGrid():
         chain = np.zeros((2, 4))
         chain[:, 0] = np.array(self.struct_position).T
         for i, angle in enumerate(self.struct_angles):
-            chain[0, i+1] = chain[0, i] + self.struct_longueur*np.cos(angle*np.pi/180.) 
-            chain[1, i+1] = chain[1, i] + self.struct_longueur*np.sin(angle*np.pi/180.) 
-            structure_[2, 3+i] = +angle*np.pi/180. 
+            chain[0, i+1] = chain[0, i] + self.struct_longueur*np.cos(angle*np.pi/180.)
+            chain[1, i+1] = chain[1, i] + self.struct_longueur*np.sin(angle*np.pi/180.)
+            structure_[2, 3+i] = +angle*np.pi/180.
             structure_[2, i] = np.pi-angle*np.pi/180
         structure_[0, 3:] = .5*(chain[0, 1:]+chain[0, :-1])
         structure_[0, :3] = -.5*(chain[0, 1:]+chain[0, :-1])
@@ -199,8 +199,8 @@ class EdgeGrid():
         self.lames[:3, -self.struct_N:] = self.do_structure()
         self.lame_length = np.hstack((self.lame_length, self.struct_longueur*np.ones(self.struct_N))) # en mètres
         self.lame_width = np.hstack((self.lame_width, .042*np.ones(self.struct_N))) # en mètres
-        
-        
+
+
     def sample_structure(self, N_mirror=0, alpha = .8):
         struct = self.lames[:3, -self.struct_N:]
         self.particles = np.ones((3, self.N_particles))
@@ -208,9 +208,9 @@ class EdgeGrid():
         for i, vec in enumerate(struct.T.tolist()):
             x0, x1 = vec[0] - .5*self.struct_longueur*np.cos(vec[2]), vec[0] + .5*self.struct_longueur*np.cos(vec[2])
             y0, y1 = vec[1] - .5*self.struct_longueur*np.sin(vec[2]), vec[1] + .5*self.struct_longueur*np.sin(vec[2])
-            self.particles[0, i*N_particles_:(i+1)*N_particles_] = np.linspace(x0, x1, N_particles_)
-            self.particles[1, i*N_particles_:(i+1)*N_particles_] = np.linspace(y0, y1, N_particles_)
-        
+            self.particles[0, int(i*N_particles_):int((i+1)*N_particles_)] = np.linspace(x0, x1, N_particles_)
+            self.particles[1, int(i*N_particles_):int((i+1)*N_particles_)] = np.linspace(y0, y1, N_particles_)
+
         # duplicate according to mirrors
         for i in range(N_mirror):
             particles = self.particles.copy() # the current structure to mirror
@@ -228,7 +228,7 @@ class EdgeGrid():
             y0, y1 = vec[1] - .5*self.struct_longueur*np.sin(vec[2]), vec[1] + .5*self.struct_longueur*np.sin(vec[2])
             segments.append(np.array([[x0, y0], [x1, y1]]).T)
         return segments
-            
+
     def theta_E(self, im, X_, Y_, w):
         try:
             assert(self.slip.N_X==im.shape[1])
@@ -303,7 +303,7 @@ class EdgeGrid():
             return dx, dy
 
     def distance(self, do_torus=False):
-        dx, dy = self.pos_rel(do_torus=do_torus) 
+        dx, dy = self.pos_rel(do_torus=do_torus)
         return np.sqrt(dx **2 + dy **2)
 
     def angle_relatif(self):
@@ -337,8 +337,8 @@ class EdgeGrid():
         self.lames[2, :N_lame] += self.lames[3, :N_lame]*self.dt/2
         self.lames[3, :N_lame] += self.champ() * self.dt
         self.lames[2, :N_lame] += self.lames[3, :N_lame]*self.dt/2
-        # angles are defined as non oriented between -pi/2 and pi/2 
-        self.lames[2, :N_lame] = np.mod(self.lames[2, :N_lame] + np.pi/2, np.pi) - np.pi/2  
+        # angles are defined as non oriented between -pi/2 and pi/2
+        self.lames[2, :N_lame] = np.mod(self.lames[2, :N_lame] + np.pi/2, np.pi) - np.pi/2
 
     def receive(self):
         if not self.filename is None:
@@ -369,18 +369,18 @@ class EdgeGrid():
 #                 self.z = np.vstack((self.z, np.hstack((np.array(self.t), self.lames[2, :] ))))
         return
 
-    def render(self, fps=10, W=1000, H=618, location=[0, 1.75, -5], head_size=.4, light_intensity=1.2, reflection=1., 
-               look_at=[0, 1.5, 0], fov=75, antialiasing=0.001, duration=5, fname='/tmp/temp.webm'):
+    def render(self, fps=10, W=1000, H=618, location=[0, 1.75, -5], head_size=.4, light_intensity=1.2, reflection=1.,
+               look_at=[0, 1.5, 0], fov=75, antialiasing=0.001, duration=5, fname='/tmp/temp.mp4'):
 
         def scene(t):
-            """ 
-            Returns the scene at time 't' (in seconds) 
+            """
+            Returns the scene at time 't' (in seconds)
             """
 
             head_location = np.array(location) - np.array([0, 0, head_size])
             import vapory
             light = vapory.LightSource([15, 15, 1], 'color', [light_intensity]*3)
-            background = vapory.Box([0, 0, 0], [1, 1, 1], 
+            background = vapory.Box([0, 0, 0], [1, 1, 1],
                      vapory.Texture(vapory.Pigment(vapory.ImageMap('png', '"../files/VISUEL_104.png"', 'once')),
                              vapory.Finish('ambient', 1.2) ),
                      'scale', [self.background_depth, self.background_depth, 0],
@@ -392,8 +392,8 @@ class EdgeGrid():
 
             for i_lame in range(self.N_lame):
                 #print(i_lame, self.lame_length[i_lame], self.lame_width[i_lame])
-                objects.append(vapory.Box([-self.lame_length[i_lame]/2, 0, -self.lame_width[i_lame]/2], 
-                                          [self.lame_length[i_lame]/2, self.lames_height,  self.lame_width[i_lame]/2], 
+                objects.append(vapory.Box([-self.lame_length[i_lame]/2, 0, -self.lame_width[i_lame]/2],
+                                          [self.lame_length[i_lame]/2, self.lames_height,  self.lame_width[i_lame]/2],
                                            vapory.Pigment('color', [1, 1, 1]),
                                            vapory.Finish('phong', 0.8, 'reflection', reflection),
                                            'rotate', (0, -self.lames[2, i_lame]*180/np.pi, 0), #HACK?
@@ -415,8 +415,8 @@ class EdgeGrid():
             clip.write_videofile(fname, fps=fps)
         return mpy.ipython_display(fname, fps=fps, loop=1, autoplay=1)
 
-    def plot_structure(self, W=1000, H=618, fig=None, ax=None, border = 0.0, 
-            opts = dict(vmin=-1, vmax=1., linewidths=0, cmap=None, alpha=.1, s=5.), 
+    def plot_structure(self, W=1000, H=618, fig=None, ax=None, border = 0.0,
+            opts = dict(vmin=-1, vmax=1., linewidths=0, cmap=None, alpha=.1, s=5.),
             scale='auto'): #
         opts.update(cmap=plt.cm.hsv)
         if fig is None: fig = plt.figure(figsize=(self.figsize, self.figsize*H/W))
@@ -429,17 +429,17 @@ class EdgeGrid():
             ax.set_xlim([-self.total_width, self.total_width])
             ax.set_ylim([-self.total_width*H/W, self.total_width*H/W])
         else:
-            ax.set_xlim([min(self.particles[0, :].min(), self.particles[1, :].min()/H*W), 
+            ax.set_xlim([min(self.particles[0, :].min(), self.particles[1, :].min()/H*W),
                          max(self.particles[0, :].max(), self.particles[1, :].max()/H*W)])
-            ax.set_ylim([min(self.particles[1, :].min(), self.particles[0, :].min()*H/W), 
+            ax.set_ylim([min(self.particles[1, :].min(), self.particles[0, :].min()*H/W),
                          max(self.particles[1, :].max(), self.particles[0, :].max()*H/W)])
-        ax.axis('off') 
+        ax.axis('off')
         return fig, ax
-    
+
     def animate(self, fps=10, W=1000, H=618, duration=20, scale='auto', fname=None):
         if fname is None:
             import tempfile
-            fname = tempfile.mktemp() + '.webm'
+            fname = tempfile.mktemp() + '.mp4'
         import matplotlib.pyplot as plt
         self.dt = 1./fps
         inches_per_pt = 1.0/72.27
@@ -466,7 +466,7 @@ class EdgeGrid():
         #self.sf_0 = .3
         #self.B_sf = .3
 #
-        #self.vext = '.webm'
+        #self.vext = '.mp4'
         #self.figpath = '../files/figures/elasticite/'
         #self.fps = 25
         #"""
@@ -624,7 +624,7 @@ try:
             self.clear()
             gl.glMatrixMode(gl.GL_PROJECTION);
             gl.glLoadIdentity()
-    #                     gluOrtho2D sets up a two-dimensional orthographic viewing region.  
+    #                     gluOrtho2D sets up a two-dimensional orthographic viewing region.
     #          Parameters left, right
     #                             Specify the coordinates for the left and right vertical clipping planes.
     #                         bottom, top
@@ -641,7 +641,7 @@ try:
             gl.glHint(gl.GL_LINE_SMOOTH_HINT, gl.GL_NICEST)
             gl.glColor3f(0., 0., 0.)
 
-            
+
             if self.first_frame:
 #                 print(self.e.t0, self.e.t)
                 self.e.t0 = time.time()
@@ -669,8 +669,8 @@ try:
                                          indices.T.ravel().tolist(),
                                          ('v2f', coords.T.ravel().tolist()))
             #pyglet.graphics.draw(4*self.e.N_lame, gl.GL_QUADS, ('v2f', coords.T.ravel().tolist()))
-            
-            
+
+
             # carré
             if self.e.DEBUG:
                 coords = np.array([[-.5*self.e.total_width, .5*self.e.total_width, .5*self.e.total_width, -.5*self.e.total_width], [-.5*self.e.total_width, -.5*self.e.total_width, .5*self.e.total_width, .5*self.e.total_width]])
@@ -684,7 +684,7 @@ try:
                 pyglet.graphics.draw(2, gl.GL_LINES, ('v2f', [0., 0., 1., 0.]))
                 gl.glColor3f(0., 1., 0.)
                 pyglet.graphics.draw(2, gl.GL_LINES, ('v2f', [0., 0., 0., 1.]))
-                
+
             gl.glMatrixMode(gl.GL_MODELVIEW);
             gl.glLoadIdentity();
 
@@ -796,8 +796,8 @@ def check(e, z):
         angle_actuel = np.mod(angle_actuel + np.pi/2, np.pi) - np.pi/2
         for i, increment in enumerate(dnbpas):
             if np.abs(increment) > e.n_pas_max:
-                print('!! /Z\ !! @ ', i_frame, ' overflow @ ', i, increment, d_angle[i]*180/np.pi)    
-                
+                print('!! /Z\ !! @ ', i_frame, ' overflow @ ', i, increment, d_angle[i]*180/np.pi)
+
 def client(e):
     writer(e)
     e.load()
