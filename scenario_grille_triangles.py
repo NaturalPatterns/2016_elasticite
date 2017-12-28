@@ -26,7 +26,7 @@ class EdgeGrid(el.EdgeGrid):
         force += colin_t(self.t) * np.sum(np.sin(6*delta_angle)*colin_d(self.distance(do_torus=True)), axis=1)
         force += noise(self.t)*np.pi*np.random.randn(self.N_lame)
         force -= damp(self.t) * self.lames[3, :]/self.dt
-        return 100. * force
+        return 1. * force
 
 e = EdgeGrid(mode=mode)
 el.main(e)

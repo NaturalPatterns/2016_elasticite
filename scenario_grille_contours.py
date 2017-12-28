@@ -30,7 +30,7 @@ class EdgeGrid(el.EdgeGrid):
         force += cocir_t(self.t) * np.sum(VM_grad(self.angle_cocir(do_torus=True), np.pi/6)*cocir_d(self.distance(do_torus=True)), axis=1)
         force += noise(self.t)*np.pi*np.random.randn(self.N_lame)
         force -= damp(self.t) * self.lames[3, :]/self.dt
-        return 3* force
+        return .02* force
 
 e = EdgeGrid(mode=mode)
 el.main(e)

@@ -66,7 +66,7 @@ class EdgeGrid():
                  figsize = 13,
                  line_width = 4.,
                  grid_type = 'hex',
-                 structure = True, struct_angles = [-15., -65., -102.],
+                 structure = False, struct_angles = [-15., -65., -102.],
                  verb = False,
                  mode = 'both',
                  filename = None,
@@ -164,6 +164,7 @@ class EdgeGrid():
             self.lames[1, :] += 1.5/self.N_lame_X # TODO : prove analytically
             self.lames[0, :] *= self.total_width
             self.lames[1, :] *= self.total_width
+            self.lames[1, :] -= self.total_width/2
             self.lame_length = .99/self.N_lame_X*self.total_width*np.ones(self.N_lame)
             self.lame_width = .03/self.N_lame_X*self.total_width*np.ones(self.N_lame)
         elif self.grid_type=='line':
@@ -570,7 +571,7 @@ try:
         Viewing particles using pyglet.app
 
             Interaction keyboard:
-            - TAB pour passer/sortir du fulscreen
+            - TAB pour passer/sortir du fullscreen
             - espace : passage en first-person perspective
 
             Les interactions visuo - sonores sont simulées ici par des switches lançant des phases:
