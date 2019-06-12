@@ -121,6 +121,11 @@ class EdgeGrid():
         self.period = period
         self.load()
 
+
+        self.vext = '.mp4'
+        self.figpath = '../files/figures/elasticite/'
+        self.fps = 25
+
     def load(self):
         if not self.filename is None:
             if os.path.isfile(self.filename):
@@ -145,8 +150,8 @@ class EdgeGrid():
 
          """
 
-        self.DEBUG = False
         self.DEBUG = True
+        self.DEBUG = False
 
         self.N_lame = N_lame
         #if N_lame_X is None:
@@ -421,7 +426,7 @@ class EdgeGrid():
             scale='auto'): #
         opts.update(cmap=plt.cm.hsv)
         if fig is None: fig = plt.figure(figsize=(self.figsize, self.figsize*H/W))
-        if ax is None: ax = fig.add_axes((border, border, 1.-2*border, 1.-2*border), axisbg='w')
+        if ax is None: ax = fig.add_axes((border, border, 1.-2*border, 1.-2*border))#, axisbg='w')
         scat  = ax.scatter(self.particles[0,::-1], self.particles[1,::-1], c=self.particles[2,::-1], **opts)
         if type(scale) is float:
             ax.set_xlim([-scale, scale])
@@ -461,36 +466,32 @@ class EdgeGrid():
         animation.write_videofile(fname, fps=fps)
         return mpy.ipython_display(fname, fps=fps, loop=1, autoplay=1, width=W)
 
-    #def show_edges(self, fig=None, a=None):
-        #self.N_theta = 12
-        #self.thetas = np.linspace(0, np.pi, self.N_theta)
-        #self.sf_0 = .3
-        #self.B_sf = .3
-#
-        #self.vext = '.mp4'
-        #self.figpath = '../files/figures/elasticite/'
-        #self.fps = 25
-        #"""
-        #Shows the quiver plot of a set of edges, optionally associated to an image.
-#
-        #"""
-        #import pylab
-        #import matplotlib.cm as cm
-        #if fig==None:
-            #fig = pylab.figure(figsize=(self.figsize, self.figsize))
-        #if a==None:
-            #border = 0.0
-            #a = fig.add_axes((border, border, 1.-2*border, 1.-2*border), axisbg='w')
-        #else:
-            #self.update_lines()
-        #marge = self.lame_length*3.
-        #a.axis(self.lames_minmax + np.array([-marge, +marge, -marge, +marge]))
-        #a.add_collection(self.lines)
-        #a.axis(c='b', lw=0)
-        #pylab.setp(a, xticks=[])
-        #pylab.setp(a, yticks=[])
-        #pylab.draw()
-        #return fig, a
+    def show_edges(self, fig=None, a=None):
+        self.N_theta = 12
+        self.thetas = np.linspace(0, np.pi, self.N_theta)
+        self.sf_0 = .3
+        self.B_sf = .3
+        """
+        Shows the quiver plot of a set of edges, optionally associated to an image.
+
+        """
+        import pylab
+        import matplotlib.cm as cm
+        if fig==None:
+            fig = pylab.figure(figsize=(self.figsize, self.figsize))
+        if a==None:
+            border = 0.0
+            a = fig.add_axes((border, border, 1.-2*border, 1.-2*border), axisbg='w')
+        else:
+            self.update_lines()
+        marge = self.lame_length*3.
+        a.axis(self.lames_minmax + np.array([-marge, +marge, -marge, +marge]))
+        a.add_collection(self.lines)
+        a.axis(c='b', lw=0)
+        pylab.setp(a, xticks=[])
+        pylab.setp(a, yticks=[])
+        pylab.draw()
+        return fig, a
 
     #def set_lines(self):
         #from matplotlib.collections import LineCollection
@@ -505,43 +506,43 @@ class EdgeGrid():
             #colors.append((0, 0, 0, 1))# black
             #linewidths.append(self.line_width)
         #return LineCollection(segments, linewidths=linewidths, colors=colors, linestyles='solid')
-#
-    #def update_lines(self):
-        #from matplotlib.collections import LineCollection
-        #import matplotlib.patches as patches
-        #X, Y, Theta = self.lames[0, :], self.lames[1, :], self.lames[2, :]
-        #segments = list()
-#
-        #for i, (x, y, theta) in enumerate(zip(X, Y, Theta)):
-            #u_, v_ = np.cos(theta)*self.lame_length, np.sin(theta)*self.lame_length
-            #segments.append([(x - u_, y - v_), (x + u_, y + v_)])
-        #self.lines.set_segments(segments)
-#
-#
-    #def fname(self, name):
-        #return os.path.join(self.figpath, name + self.vext)
-#
-    #def make_anim(self, name, make_lames, duration=3., redo=False):
-        #if redo or not os.path.isfile(self.fname(name)):
-#
-            #import matplotlib.pyplot as plt
-            #from moviepy.video.io.bindings import mplfig_to_npimage
-            #import moviepy.editor as mpy
-#
-            #fig_mpl, ax = plt.subplots(1, figsize=(self.figsize, self.figsize), facecolor='white')
-#
-            #def make_frame_mpl(t):
+
+    def update_lines(self):
+        from matplotlib.collections import LineCollection
+        import matplotlib.patches as patches
+        X, Y, Theta = self.lames[0, :], self.lames[1, :], self.lames[2, :]
+        segments = list()
+
+        for i, (x, y, theta) in enumerate(zip(X, Y, Theta)):
+            u_, v_ = np.cos(theta)*self.lame_length, np.sin(theta)*self.lame_length
+            segments.append([(x - u_, y - v_), (x + u_, y + v_)])
+        self.lines.set_segments(segments)
+
+
+    def fname(self, name):
+        return os.path.join(self.figpath, name + self.vext)
+
+    def make_anim(self, name, make_lames, duration=3., redo=False):
+        if redo or not os.path.isfile(self.fname(name)):
+
+            import matplotlib.pyplot as plt
+            from moviepy.video.io.bindings import mplfig_to_npimage
+            import moviepy.editor as mpy
+
+            fig_mpl, ax = plt.subplots(1, figsize=(self.figsize, self.figsize), facecolor='white')
+
+            def make_frame_mpl(t):
                 # on ne peut changer que l'orientation des lames:
-                #self.t = t
-                #self.lames[2, :] = make_lames(self)
-                #self.update_lines()
-                #fig_mpl, ax = self.show_edges()#fig_mpl, ax)
-                #self.t_old = t
-                #return mplfig_to_npimage(fig_mpl) # RGB image of the figure
-#
-            #animation = mpy.VideoClip(make_frame_mpl, duration=duration)
-            #animation.write_videofile(self.fname(name), fps=self.fps)
-#
+                self.t = t
+                self.lames[2, :] = make_lames(self)
+                self.update_lines()
+                fig_mpl, ax = self.show_edges()#fig_mpl, ax)
+                self.t_old = t
+                return mplfig_to_npimage(fig_mpl) # RGB image of the figure
+
+            animation = mpy.VideoClip(make_frame_mpl, duration=duration)
+            animation.write_videofile(self.fname(name), fps=self.fps)
+
     #def ipython_display(self, name, loop=True, autoplay=True, controls=True):
         #"""
         #showing the grid in the notebook by pointing at the file stored in the proper folder
@@ -583,6 +584,7 @@ try:
             #super(Window, self).__init__(*args, **kwargs)
             super(Window, self).__init__(config=smoothConfig, *args, **kwargs)
             self.e = e
+			#self.set_fullscreen(True)
             self.first_frame = True
             self.label = pyglet.text.Label('Hello, world',
                           #font_name='Times New Roman',
@@ -665,11 +667,12 @@ try:
                                 X+dX*self.e.lame_length-dY*self.e.lame_width, Y+dY*self.e.lame_length+dX*self.e.lame_width,
                                 ))
             #pyglet.graphics.draw(2*self.e.N_lame, gl.GL_LINES, ('v2f', coords.T.ravel().tolist()))
-            indices = np.array([0, 1, 2, 1, 2, 3])[:, np.newaxis] + 4*np.arange(self.e.N_lame)
-            pyglet.graphics.draw_indexed(4*self.e.N_lame, pyglet.gl.GL_TRIANGLES,
-                                         indices.T.ravel().tolist(),
-                                         ('v2f', coords.T.ravel().tolist()))
-            #pyglet.graphics.draw(4*self.e.N_lame, gl.GL_QUADS, ('v2f', coords.T.ravel().tolist()))
+            if True:
+                indices = np.array([0, 1, 2, 1, 2, 3])[:, np.newaxis] + 4*np.arange(self.e.N_lame)
+                pyglet.graphics.draw_indexed(4*self.e.N_lame, pyglet.gl.GL_TRIANGLES,
+                                             indices.T.ravel().tolist(),
+                                             ('v2f', coords.T.ravel().tolist()))
+                #pyglet.graphics.draw(4*self.e.N_lame, gl.GL_QUADS, ('v2f', coords.T.ravel().tolist()))
 
 
             # carré

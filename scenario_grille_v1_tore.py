@@ -19,7 +19,7 @@ class EdgeGrid(el.EdgeGrid):
         force = np.zeros_like(self.lames[2, :])
         noise = lambda t: .1* np.exp((np.cos(2*np.pi*(t-0.) / 6.)-1.)/ 1.5**2)
         damp = lambda t: 0.001 #* np.exp(np.cos(t / 6.) / 3.**2)
-        cocir_t = lambda t: 1.5*np.exp((np.cos(2*np.pi*(t-2.) / 6.)-1.)/ .3**2)
+        cocir_t = lambda t: 2.5*np.exp((np.cos(2*np.pi*(t-2.) / 6.)-1.)/ .3**2)
         cocir_d = lambda d: np.exp(-d/.1)
         colin_t = lambda t: -2.*np.exp((np.cos(2*np.pi*(t-4.) / 6.)-1.)/ .5**2)
         colin_d = lambda d: np.exp(-d/.05)
@@ -28,8 +28,9 @@ class EdgeGrid(el.EdgeGrid):
         force += cocir_t(self.t) * np.sum(np.sin(2*(self.angle_cocir(do_torus=True)))*cocir_d(self.distance(do_torus=True)), axis=1)
         force += noise(self.t)*np.pi*np.random.randn(self.N_lame)
         force -= damp(self.t) * self.lames[3, :]/self.dt
-        speed = lambda t: 50.*(1-np.exp((np.cos(2*np.pi*(t-4.) / 6.)-1.)/ .5**2))
+        speed = lambda t: 2.*(1-np.exp((np.cos(2*np.pi*(t-4.) / 6.)-1.)/ .5**2))
         return speed(self.t) * force
 
-e = EdgeGrid(N_lame=16*72, mode=mode)
+#e = EdgeGrid(N_lame=16*72, mode=mode)
+e = EdgeGrid(N_lame=16*72+4, mode=mode)
 el.main(e)

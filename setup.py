@@ -9,8 +9,8 @@ version = "0.1.1"
 setup(
     name = NAME,
     version = version,
-    packages=find_packages('src', exclude='docs'),
-    package_dir = {'': 'src'},
+    packages=find_packages('elasticite', exclude='docs'),
+    package_dir = {'': 'elasticite'},
     author = "Laurent Perrinet INT - CNRS",
     author_email = "Laurent.Perrinet@univ-amu.fr",
     description = "Elasticité: une expérience plastique avec Etienne Rey.",
