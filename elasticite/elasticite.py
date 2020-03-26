@@ -594,15 +594,15 @@ try:
                            anchor_x='center', anchor_y='center')
             self.fps_label = pyglet.text.Label(text="fps: 0", x=100, y=100)
             helv = pyglet.font.load('Helvetica', self.width / 15.0)
-            self.text = pyglet.font.Text(
-                helv,
-                'Hello, World!',
-                x=.5,
-                y=.5,
-                halign=pyglet.font.Text.CENTER,
-                valign=pyglet.font.Text.CENTER,
-                color=(1, 1, 1, 0.5),
-            )
+            # self.text = pyglet.font.Text(
+            #     helv,
+            #     'Hello, World!',
+            #     x=.5,
+            #     y=.5,
+            #     halign=pyglet.font.Text.CENTER,
+            #     valign=pyglet.font.Text.CENTER,
+            #     color=(1, 1, 1, 0.5),
+            # )
         #@self.event
         def on_key_press(self, symbol, modifiers):
             if symbol == pyglet.window.key.TAB:
@@ -812,12 +812,11 @@ def client(e):
         e.socket = context.socket(zmq.REQ)
         e.socket.connect ("tcp://localhost:%s" % e.port)
 
-    platform = pyglet.window.get_platform()
-    print("platform" , platform)
-    display = platform.get_default_display()
-    print("display" , display)
+    display = pyglet.canvas.get_display()
+    print ("DEBUG: display client says display" , display)
     screens = display.get_screens()
     print("screens" , screens)
+
     for i, screen in enumerate(screens):
         print('Screen %d: %dx%d at (%d,%d)' % (i, screen.width, screen.height, screen.x, screen.y))
     N_screen = len(screens) # number of screens
